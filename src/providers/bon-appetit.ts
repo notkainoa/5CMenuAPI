@@ -15,7 +15,7 @@ import { validTime } from '../dates';
 import { MEAL_PERIODS, withMealPeriod } from '../periods';
 import { refineBonAppetitMeals, type CatalogItem } from './bon-appetit-catalog';
 
-const STATE_VERSION = 6;
+const STATE_VERSION = 7;
 const PROVIDER = 'bon-appetit';
 
 const CAFES = {
@@ -307,13 +307,41 @@ function isClosedSection(section: { attributes: string; body: string }): boolean
   return /^closed(?:\s+for\s+.+)?$/i.test(textContent(title ?? heading ?? ''));
 }
 
-function collinsSpecialHours(html: string, date: string, meals: Meal[]): Meal[] {
+function twelveHourClock(hour: string, minute: string, period: string): string {
+  return `${String(Number(hour) % 12 + (period.toLowerCase() === 'pm' ? 12 : 0)).padStart(2, '0')}:${minute}`;
+}
+
+function weekdayRangeIncludes(date: string, start: string, end: string): boolean {
+  const weekdays: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+  const first = weekdays[start.toLowerCase()];
+  const last = weekdays[end.toLowerCase()];
+  if (first === undefined || last === undefined) return false;
+  const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return first <= last ? weekday >= first && weekday <= last : weekday >= first || weekday <= last;
+}
+
+function collinsWeeklyContinental(html: string, date: string): Meal | undefined {
+  for (const row of elementBlocks(html, 'li', 'day-part')) {
+    const label = elementBlocks(row.body, 'span', 'pull-left')[0];
+    const hours = elementBlocks(row.body, 'span', 'pull-right')[0];
+    if (!label || !hours || textContent(label.body).toLowerCase() !== 'continental breakfast') continue;
+    const match = /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)-(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s*(1[0-2]|[1-9]):([0-5]\d)\s*(am|pm)\s*-\s*(1[0-2]|[1-9]):([0-5]\d)\s*(am|pm)$/i.exec(textContent(hours.body));
+    if (!match || !weekdayRangeIncludes(date, match[1], match[2])) continue;
+    return withMealPeriod({
+      name: 'Continental Breakfast',
+      startTime: twelveHourClock(match[3], match[4], match[5]),
+      endTime: twelveHourClock(match[6], match[7], match[8]),
+      stations: [],
+    });
+  }
+  return undefined;
+}
+
+function collinsSpecialHours(html: string, date: string, meals: Meal[]): { meals: Meal[]; brunchSpecial: boolean } {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const [year, month, day] = date.split('-').map(Number);
   const dateLabel = `${monthNames[month - 1]} ${day}`;
   const special = new Map<string, { startTime: string; endTime: string }>();
-  const clock = (hour: string, minute: string, period: string): string =>
-    `${String(Number(hour) % 12 + (period.toLowerCase() === 'pm' ? 12 : 0)).padStart(2, '0')}:${minute}`;
   for (const block of elementBlocks(html, 'div', 'cafe-hours-special')) {
     for (const row of elementBlocks(block.body, 'li', 'dotted-leader-container')) {
       const label = elementBlocks(row.body, 'span', 'pull-left')[0];
@@ -324,14 +352,23 @@ function collinsSpecialHours(html: string, date: string, meals: Meal[]): Meal[] 
       if (!match || match[1] !== dateLabel || match[2] && Number(match[2]) !== year) continue;
       const name = textContent(label.body).toLowerCase();
       if (!meals.some(meal => meal.name.toLowerCase() === name)) throw new Error('Collins special-hours meal lacks a dated menu');
-      special.set(name, { startTime: clock(match[3], match[4], match[5]), endTime: clock(match[6], match[7], match[8]) });
+      special.set(name, { startTime: twelveHourClock(match[3], match[4], match[5]), endTime: twelveHourClock(match[6], match[7], match[8]) });
     }
   }
   // Collins leaves regular weekday pantry menus in the HTML on holiday brunch
   // days. A dated brunch replaces morning service, unless explicitly listed too.
-  return meals.filter(meal => !special.has('brunch') || special.has(meal.name.toLowerCase()) ||
+  const reconciled = meals.filter(meal => !special.has('brunch') || special.has(meal.name.toLowerCase()) ||
     !['breakfast', 'continental breakfast', 'lunch'].includes(meal.name.toLowerCase()))
     .map(meal => ({ ...meal, ...special.get(meal.name.toLowerCase()) }));
+  return { meals: reconciled, brunchSpecial: special.has('brunch') };
+}
+
+function addCollinsWeeklyContinental(html: string, date: string, meals: Meal[]): Meal[] {
+  if (meals.some(meal => meal.name.toLowerCase() === 'continental breakfast')) return meals;
+  const continental = collinsWeeklyContinental(html, date);
+  if (!continental) return meals;
+  return [...meals, continental].sort((left, right) =>
+    (left.startTime ?? '99:99').localeCompare(right.startTime ?? '99:99'));
 }
 
 /** Parse one dated public cafe page. A null result means that exact date was not published. */
@@ -346,8 +383,10 @@ export function parseBonAppetitPage(html: string, requestedDate: string, hall?: 
   if (!isRecord(itemData)) throw new Error('Bamco.menu_items is not an object');
   const mealSections = matchingSections.filter(section => !isClosedSection(section));
   const parsedMeals = mealSections.map(section => mealFromSection(section, itemData));
-  const datedMeals = hall === 'collins' ? collinsSpecialHours(html, requestedDate, parsedMeals) : parsedMeals;
-  const meals = refineBonAppetitMeals(datedMeals);
+  const collins = hall === 'collins' ? collinsSpecialHours(html, requestedDate, parsedMeals) : undefined;
+  const refinedMeals = refineBonAppetitMeals(collins?.meals ?? parsedMeals);
+  const meals = hall === 'collins' && !collins?.brunchSpecial
+    ? addCollinsWeeklyContinental(html, requestedDate, refinedMeals) : refinedMeals;
   const itemCount = meals.reduce((sum, meal) => sum + meal.stations.reduce((stationSum, station) => stationSum + station.items.length, 0), 0);
   if (itemCount === 0) throw new Error('Bon Appétit page has dated dayparts but no menu items');
   return { date: requestedDate, status: 'ok', meals };

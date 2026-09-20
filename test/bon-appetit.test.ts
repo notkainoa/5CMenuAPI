@@ -55,6 +55,26 @@ function response(body: string, init: ResponseInit = {}): Response {
 }
 
 describe('parseBonAppetitPage', () => {
+  it('publishes Collins weekday continental breakfast hours without copying breakfast dishes', () => {
+    const weekly = `<p class='current-status'>Weekly Schedule</p><ul>
+      <li class='day-part dotted-leader-container'><span class='pull-left'>Breakfast</span><span class='pull-right'>Mon-Fri, 7:30 am - 9:00 am</span></li>
+      <li class='day-part dotted-leader-container'><span class='pull-left'>Continental Breakfast</span><span class='pull-right'>Mon-Fri, 9:00 am - 10:00 am</span></li>
+      <li class='day-part dotted-leader-container'><span class='pull-left'>Brunch</span><span class='pull-right'>Sat-Sun, 10:30 am - 12:30 pm</span></li>
+    </ul>`;
+    const day = parseBonAppetitPage(fixture(TOMORROW) + weekly, TOMORROW, 'collins');
+    assert.deepEqual(day?.meals.map(meal => ({
+      name: meal.name,
+      startTime: meal.startTime,
+      endTime: meal.endTime,
+      dishes: meal.stations.flatMap(station => station.items).length,
+    })), [
+      { name: 'Breakfast', startTime: '07:30', endTime: '09:00', dishes: 2 },
+      { name: 'Continental Breakfast', startTime: '09:00', endTime: '10:00', dishes: 0 },
+      { name: 'Lunch', startTime: '11:00', endTime: '13:00', dishes: 1 },
+    ]);
+    assert.equal(parseBonAppetitPage(fixture(TOMORROW) + weekly, TOMORROW, 'malott')?.meals.length, 2);
+  });
+
   it('reconciles Collins holiday brunch with regular morning sections and special dinner hours', () => {
     const special = `<div class='cafe-hours-special'><ul>
       <li class='day-part dotted-leader-container'><span class='pull-left'>Brunch&nbsp;</span><span class='pull-right'>&nbsp;September 7, 10:30 am - 12:30 pm</span></li>
