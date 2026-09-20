@@ -148,6 +148,46 @@ const recipe = {
   ] },
 };
 
+const fraryHours = `<!doctype html><div class="dining-hours-top editorial">
+  <!-- <p><strong>Old hours</strong></p><p><span>Breakfast:</span> 6 - 8 a.m.</p> -->
+  <h2>Hours</h2><div><p><strong>Frary's regular hours of operation are:</strong></p></div>
+  <div><div><p><strong>Monday - Friday</strong></p><p>
+    <span>Breakfast:</span> 7:30 - 10 a.m.<br>
+    <span>Lunch:</span> 11 a.m. - 1:30 p.m.<br>
+    <span>Continuous Service:</span> 1:30 - 4:30 p.m.<br>
+    <span>Dinner:</span> 5 - 7:30 p.m.
+  </p></div><div><p><strong>Saturdays &amp; Sundays (and holidays)</strong></p><p>
+    <span>Continental Breakfast:</span> 7:30 - 9:30 a.m.<br>
+    <span>Brunch:</span> 10:30 a.m. - 1:30 p.m.<br>
+    <span>Continuous Service:</span> 1:30 - 4:30 p.m.<br>
+    <span>Dinner:</span> 5 - 7:30 p.m.
+  </p></div></div>
+</div>`;
+
+test('Pomona reconciles Frary weekend hours without inventing a continental menu', async () => {
+  const menu = [
+    { '@servedate': '20260920', '@mealperiodname': 'Breakfast', recipes: { recipe } },
+    { '@servedate': '20260920', '@mealperiodname': 'Dinner', recipes: { recipe } },
+  ];
+  const result = await refreshPomona('frary', ['2026-09-20'], undefined, async input => {
+    if (String(input).endsWith('/Frary.json')) {
+      return new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json' } });
+    }
+    return new Response(fraryHours, { headers: { 'content-type': 'text/html' } });
+  });
+  assert.deepEqual(result.days[0].meals.map(meal => ({
+    name: meal.name,
+    period: meal.period,
+    startTime: meal.startTime,
+    endTime: meal.endTime,
+    dishes: meal.stations.flatMap(station => station.items).length,
+  })), [
+    { name: 'Continental Breakfast', period: 'breakfast', startTime: '07:30', endTime: '09:30', dishes: 0 },
+    { name: 'Brunch', period: 'brunch', startTime: '10:30', endTime: '13:30', dishes: 1 },
+    { name: 'Dinner', period: 'dinner', startTime: '17:00', endTime: '19:30', dishes: 1 },
+  ]);
+});
+
 test('Pomona groups records into meals and stations without dropping recipes', async () => {
   const menu = [
     { '@servedate': '20260906', '@mealperiodname': 'Lunch', '@menubulletin': '', recipes: { recipe: [recipe, { ...recipe, '@shortName': 'Second Curry' }] } },
@@ -182,7 +222,8 @@ test('Pomona conditional requests reuse verified parsed state on 304', async () 
     headers: { 'content-type': 'application/json', etag: '"same"', 'last-modified': 'Sun, 06 Sep 2026 19:00:00 GMT' },
   }));
   let checkedHeaders: Headers | undefined;
-  const second = await refreshPomona('frary', ['2026-09-06'], first.state, async (_input, init) => {
+  const second = await refreshPomona('frary', ['2026-09-06'], first.state, async (input, init) => {
+    if (!String(input).endsWith('/Frary.json')) return new Response('', { headers: { 'content-type': 'text/html' } });
     checkedHeaders = new Headers(init?.headers);
     return new Response(null, { status: 304 });
   });
@@ -239,7 +280,8 @@ test('Pomona refetches when a 304 cache covers only part of the requested window
     headers: { 'content-type': 'application/json', etag: '"same"' },
   }));
   const statuses: number[] = [];
-  const expanded = await refreshPomona('frary', ['2026-09-06', '2026-09-07'], first.state, async (_input, init) => {
+  const expanded = await refreshPomona('frary', ['2026-09-06', '2026-09-07'], first.state, async (input, init) => {
+    if (!String(input).endsWith('/Frary.json')) return new Response('', { headers: { 'content-type': 'text/html' } });
     if (new Headers(init?.headers).has('if-none-match')) {
       statuses.push(304);
       return new Response(null, { status: 304 });

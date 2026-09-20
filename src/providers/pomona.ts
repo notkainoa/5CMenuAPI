@@ -2,15 +2,20 @@ import type { Meal, MenuItem, ParsedDay, RefreshHall, SourceState, Station } fro
 import { isValidDate } from '../dates';
 import { uniqueSortedAllergens } from '../allergens';
 import { withMealPeriod } from '../periods';
+import { parsePomonaHours, reconcilePomonaHours, type PomonaWeek } from './pomona-hours';
 
 const FEEDS = {
   frank: 'https://api.pomona.edu/eatec/Frank.json',
   frary: 'https://api.pomona.edu/eatec/Frary.json',
   oldenborg: 'https://api.pomona.edu/eatec/Oldenborg.json',
 } as const;
+const HOURS_PAGES = {
+  frank: 'https://www.pomona.edu/administration/dining/menus/frank',
+  frary: 'https://www.pomona.edu/administration/dining/menus/frary',
+} as const;
 const MAX_BYTES = 2 * 1024 * 1024;
 const TIMEOUT_MS = 15_000;
-const STATE_VERSION = 3;
+const STATE_VERSION = 4;
 
 type JsonRecord = Record<string, unknown>;
 interface PomonaState extends SourceState {
@@ -19,7 +24,9 @@ interface PomonaState extends SourceState {
   etag?: string;
   lastModified?: string;
   hash: string;
+  sourceDays: ParsedDay[];
   days: ParsedDay[];
+  hours?: PomonaWeek;
 }
 
 function isRecord(value: unknown): value is JsonRecord {
@@ -184,7 +191,8 @@ async function boundedText(response: Response): Promise<string> {
 }
 
 function oldState(value: SourceState | undefined): PomonaState | undefined {
-  if (!isRecord(value) || value.provider !== 'pomona' || value.version !== STATE_VERSION || typeof value.hash !== 'string' || !Array.isArray(value.days)) return undefined;
+  if (!isRecord(value) || value.provider !== 'pomona' || value.version !== STATE_VERSION || typeof value.hash !== 'string' ||
+    !Array.isArray(value.sourceDays) || !Array.isArray(value.days)) return undefined;
   return value as unknown as PomonaState;
 }
 
@@ -193,6 +201,20 @@ async function request(url: string, previous: PomonaState | undefined, fetcher: 
   if (conditional && previous?.etag) headers.set('If-None-Match', previous.etag);
   if (conditional && previous?.lastModified) headers.set('If-Modified-Since', previous.lastModified);
   return fetcher(url, { headers, signal });
+}
+
+async function fetchHours(hall: keyof typeof FEEDS, fetcher: typeof fetch, signal: AbortSignal): Promise<PomonaWeek | undefined> {
+  if (!(hall in HOURS_PAGES)) return undefined;
+  try {
+    const response = await fetcher(HOURS_PAGES[hall as keyof typeof HOURS_PAGES], {
+      headers: { Accept: 'text/html' },
+      signal,
+    });
+    if (!response.ok) return undefined;
+    return parsePomonaHours(await boundedText(response));
+  } catch {
+    return undefined;
+  }
 }
 
 export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher) => {
@@ -209,7 +231,10 @@ export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher)
       if (!prior || covered < dates.length) {
         response = await request(url, undefined, fetcher, false, controller.signal);
       } else {
-        return { days: prior.days.filter(day => dates.includes(day.date)), state: prior };
+        const hours = await fetchHours(hall as keyof typeof FEEDS, fetcher, controller.signal) ?? prior.hours;
+        const days = reconcilePomonaHours(prior.sourceDays, hours);
+        const state: PomonaState = { ...prior, days, ...(hours ? { hours } : {}) };
+        return { days: days.filter(day => dates.includes(day.date)), state };
       }
     }
     if (!response.ok) throw new Error(`Pomona returned HTTP ${response.status}`);
@@ -217,12 +242,16 @@ export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher)
     if (contentType && !contentType.includes('application/json') && !contentType.includes('text/javascript')) throw new Error('Pomona returned an unexpected content type');
     const text = await boundedText(response);
     const hash = await sha256(text);
-    const allDays = prior?.hash === hash ? prior.days : parseFeed(text);
+    const sourceDays = prior?.hash === hash ? prior.sourceDays : parseFeed(text);
+    const hours = await fetchHours(hall as keyof typeof FEEDS, fetcher, controller.signal) ?? prior?.hours;
+    const allDays = reconcilePomonaHours(sourceDays, hours);
     const state: PomonaState = {
       provider: 'pomona',
       version: STATE_VERSION,
       hash,
+      sourceDays,
       days: allDays,
+      ...(hours ? { hours } : {}),
       ...(response.headers.get('etag') ? { etag: response.headers.get('etag')! } : {}),
       ...(response.headers.get('last-modified') ? { lastModified: response.headers.get('last-modified')! } : {}),
     };

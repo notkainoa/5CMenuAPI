@@ -78,6 +78,12 @@ const collectorRuntime = new Miniflare(convertV4MiniflareOptions({
       const records = pomonaDates.map(date => ({ '@servedate': date.replaceAll('-', ''), '@mealperiodname': 'Lunch', recipes: { recipe: { '@shortName': 'Soup', '@category': 'Main' } } }));
       return new RuntimeResponse(`/**/ menuData(${JSON.stringify({ EatecExchange: { menu: records } })});`, { headers: { 'content-type': 'application/json' } });
     }
+    if (url.hostname === 'www.pomona.edu') {
+      return new RuntimeResponse(`<div class="dining-hours-top editorial">
+        <p><strong>Monday - Friday</strong></p><p><span>Lunch:</span> 11 a.m. - 1 p.m.</p>
+        <p><strong>Saturdays &amp; Sundays</strong></p><p><span>Lunch:</span> 11 a.m. - 1 p.m.</p>
+      </div><div class="dining-hall-location">Test</div>`, { headers: { 'content-type': 'text/html' } });
+    }
     throw new Error(`Unexpected outbound request in runtime test: ${url}`);
   },
 }));
@@ -91,8 +97,8 @@ try {
   const snapshot = JSON.parse(stored) as Snapshot;
   const dates = Object.keys(snapshot.menus).sort();
   assert.equal(dates.length, 7);
-  // 3 Bon Appétit halls × 7 dates, 7 Sodexo dates, and 3 Pomona feeds.
-  const expectedSourceCalls = 3 * dates.length + dates.length + 3;
+  // 3 Bon Appétit halls × 7 dates, 7 Sodexo dates, 3 Pomona feeds, and 2 Pomona hours pages.
+  const expectedSourceCalls = 3 * dates.length + dates.length + 3 + 2;
   assert.equal(sourceCalls, expectedSourceCalls);
   for (const date of dates) {
     assert.equal(Object.keys(snapshot.menus[date]).length, 7);
