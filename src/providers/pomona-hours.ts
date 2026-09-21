@@ -37,13 +37,17 @@ function activeHoursLines(html: string): string[] {
 
 function weekdays(label: string): number[] | undefined {
   const fixed = label.toLowerCase().replace(/[^a-z]+/g, ' ').trim();
-  if (fixed.includes('monday') && fixed.includes('friday')) return [1, 2, 3, 4, 5];
-  if (fixed.includes('saturday') && fixed.includes('sunday')) return [6, 0];
-  if (fixed.includes('sunday') && fixed.includes('thursday')) return [0, 1, 2, 3, 4];
-  if (/^fridays?$/.test(fixed)) return [5];
-  if (/^saturdays?$/.test(fixed)) return [6];
-  if (/^sundays?$/.test(fixed)) return [0];
-  return undefined;
+  if (/^(?:every day|daily)$/.test(fixed)) return [0, 1, 2, 3, 4, 5, 6];
+  const values: Record<string, number> = {
+    sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+  };
+  const matches = Array.from(fixed.matchAll(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)s?\b/g), match => values[match[1]]);
+  if (matches.length === 0) return undefined;
+  if (matches.length === 1) return matches;
+  if (matches.length > 2) return Array.from(new Set(matches));
+  const days = [matches[0]];
+  while (days.at(-1) !== matches[1]) days.push((days.at(-1)! + 1) % 7);
+  return days;
 }
 
 function meridiem(value: string | undefined): 'am' | 'pm' | undefined {
@@ -57,7 +61,7 @@ function clock(hour: number, minute: number, period: 'am' | 'pm'): string {
 }
 
 function service(line: string): PomonaService | undefined {
-  const match = /^(Continental Breakfast|Breakfast|Brunch|Lunch(?: only)?|Dinner):?\s+(1[0-2]|[1-9])(?::([0-5]\d))?\s*(a\.?m\.?)?\s*[-–]\s*(1[0-2]|[1-9])(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)?/i.exec(line);
+  const match = /^(Continental Breakfast|Breakfast|Brunch|Lunch(?: only)?|Dinner):?\s+(1[0-2]|[1-9])(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)?\s*[-–]\s*(1[0-2]|[1-9])(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)?/i.exec(line);
   if (!match) return undefined;
   const name = match[1].replace(/\s+only$/i, '');
   const startHour = Number(match[2]);
@@ -84,10 +88,15 @@ export function parsePomonaHours(html: string): PomonaWeek | undefined {
       days = nextDays;
       continue;
     }
-    if (!days) continue;
     const nextService = service(line);
-    if (!nextService) continue;
-    for (const day of days) (week[day] ??= []).push(nextService);
+    if (nextService) {
+      if (days) for (const day of days) (week[day] ??= []).push(nextService);
+      continue;
+    }
+    // Unsupported timed services (for example Continuous Service) remain in the
+    // current day group. A plain heading ends it so later hours cannot leak into
+    // the previous recognized range.
+    if (!/\b(?:1[0-2]|[1-9])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)?\s*[-–]\s*(?:1[0-2]|[1-9])\b/i.test(line)) days = undefined;
   }
   return Object.keys(week).length > 0 ? week : undefined;
 }
@@ -102,14 +111,15 @@ export function reconcilePomonaHours(days: ParsedDay[], week: PomonaWeek | undef
     const services = week[dayOfWeek(day.date)];
     if (day.status !== 'ok' || !services?.length) return day;
     const remaining = [...day.meals];
-    const hasContinentalAndBrunch = services.some(entry => entry.name.toLowerCase() === 'continental breakfast') &&
-      services.some(entry => mealPeriod(entry.name) === 'brunch');
+    const brunchUsesBreakfast = services.some(entry => mealPeriod(entry.name) === 'brunch') &&
+      !services.some(entry => mealPeriod(entry.name) === 'breakfast' && entry.name.toLowerCase() !== 'continental breakfast');
     const meals: Meal[] = services.map(entry => {
       const period = mealPeriod(entry.name);
       let match = -1;
-      if (period === 'brunch' && hasContinentalAndBrunch) {
-        match = remaining.findIndex(meal => meal.period === 'brunch' || meal.period === 'breakfast');
-      } else if (!(period === 'breakfast' && hasContinentalAndBrunch)) {
+      if (period === 'brunch') {
+        match = remaining.findIndex(meal => meal.period === 'brunch');
+        if (match < 0 && brunchUsesBreakfast) match = remaining.findIndex(meal => meal.period === 'breakfast');
+      } else if (!(period === 'breakfast' && brunchUsesBreakfast)) {
         match = remaining.findIndex(meal => meal.period === period);
       }
       const source = match >= 0 ? remaining.splice(match, 1)[0] : undefined;
@@ -121,6 +131,6 @@ export function reconcilePomonaHours(days: ParsedDay[], week: PomonaWeek | undef
         endTime: entry.endTime,
       };
     });
-    return { ...day, meals: [...meals, ...remaining] };
+    return { ...day, meals };
   });
 }

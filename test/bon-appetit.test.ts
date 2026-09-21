@@ -54,14 +54,15 @@ function response(body: string, init: ResponseInit = {}): Response {
   return new Response(body, { ...init, status: init.status ?? 200, headers });
 }
 
+const collinsWeekly = `<p class='current-status'>Weekly Schedule</p><ul>
+  <li class='day-part dotted-leader-container'><span class='pull-left'>Breakfast</span><span class='pull-right'>Mon-Fri, 7:30 am - 9:00 am</span></li>
+  <li class='day-part dotted-leader-container'><span class='pull-left'>Continental Breakfast</span><span class='pull-right'>Mon-Fri, 9:00 am - 10:00 am</span></li>
+  <li class='day-part dotted-leader-container'><span class='pull-left'>Brunch</span><span class='pull-right'>Sat-Sun, 10:30 am - 12:30 pm</span></li>
+</ul>`;
+
 describe('parseBonAppetitPage', () => {
   it('publishes Collins weekday continental breakfast hours without copying breakfast dishes', () => {
-    const weekly = `<p class='current-status'>Weekly Schedule</p><ul>
-      <li class='day-part dotted-leader-container'><span class='pull-left'>Breakfast</span><span class='pull-right'>Mon-Fri, 7:30 am - 9:00 am</span></li>
-      <li class='day-part dotted-leader-container'><span class='pull-left'>Continental Breakfast</span><span class='pull-right'>Mon-Fri, 9:00 am - 10:00 am</span></li>
-      <li class='day-part dotted-leader-container'><span class='pull-left'>Brunch</span><span class='pull-right'>Sat-Sun, 10:30 am - 12:30 pm</span></li>
-    </ul>`;
-    const day = parseBonAppetitPage(fixture(TOMORROW) + weekly, TOMORROW, 'collins');
+    const day = parseBonAppetitPage(fixture(TOMORROW) + collinsWeekly, TOMORROW, 'collins');
     assert.deepEqual(day?.meals.map(meal => ({
       name: meal.name,
       startTime: meal.startTime,
@@ -72,7 +73,26 @@ describe('parseBonAppetitPage', () => {
       { name: 'Continental Breakfast', startTime: '09:00', endTime: '10:00', dishes: 0 },
       { name: 'Lunch', startTime: '11:00', endTime: '13:00', dishes: 1 },
     ]);
-    assert.equal(parseBonAppetitPage(fixture(TOMORROW) + weekly, TOMORROW, 'malott')?.meals.length, 2);
+    assert.equal(parseBonAppetitPage(fixture(TOMORROW) + collinsWeekly, TOMORROW, 'malott')?.meals.length, 2);
+  });
+
+  it('limits Collins weekly hours to the weekly block and its matching weekdays', () => {
+    const injected = `<li class='day-part'><span class='pull-left'>Continental Breakfast</span><span class='pull-right'>Mon-Fri, 6:00 am - 7:00 am</span></li>`;
+    assert.deepEqual(parseBonAppetitPage(fixture(TOMORROW, injected), TOMORROW, 'collins')?.meals.map(meal => meal.name), ['Breakfast', 'Lunch']);
+    assert.deepEqual(parseBonAppetitPage(fixture(DATE) + collinsWeekly, DATE, 'collins')?.meals.map(meal => meal.name), ['Breakfast', 'Lunch']);
+  });
+
+  it('does not duplicate a dated Collins continental menu', () => {
+    const continental = `<section class="site-panel--daypart" data-jump-nav-title="Continental Breakfast"><div class="site-panel__daypart-container" data-end-date="${TOMORROW}" data-start-time="09:00" data-end-time="10:00"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="101"></div></div></section>`;
+    const meals = parseBonAppetitPage(fixture(TOMORROW) + continental + collinsWeekly, TOMORROW, 'collins')?.meals;
+    assert.equal(meals?.filter(meal => meal.name === 'Continental Breakfast').length, 1);
+    assert.equal(meals?.find(meal => meal.name === 'Continental Breakfast')?.stations[0].items.length, 1);
+  });
+
+  it('does not add weekly Collins breakfast service when dated special hours apply', () => {
+    const dinner = `<section class="site-panel--daypart" data-jump-nav-title="Dinner"><div class="site-panel__daypart-container" data-end-date="${TOMORROW}" data-start-time="17:00" data-end-time="19:00"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="101"></div></div></section>`;
+    const special = `<div class='cafe-hours-special'><ul><li class='day-part dotted-leader-container'><span class='pull-left'>Dinner</span><span class='pull-right'>September 7, 4:30 pm - 6:30 pm</span></li></ul></div>`;
+    assert.deepEqual(parseBonAppetitPage(fixture(TOMORROW) + dinner + special + collinsWeekly, TOMORROW, 'collins')?.meals.map(meal => meal.name), ['Breakfast', 'Lunch', 'Dinner']);
   });
 
   it('reconciles Collins holiday brunch with regular morning sections and special dinner hours', () => {

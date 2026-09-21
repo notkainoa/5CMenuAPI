@@ -15,7 +15,7 @@ const HOURS_PAGES = {
 } as const;
 const MAX_BYTES = 2 * 1024 * 1024;
 const TIMEOUT_MS = 15_000;
-const STATE_VERSION = 4;
+const STATE_VERSION = 5;
 
 type JsonRecord = Record<string, unknown>;
 interface PomonaState extends SourceState {
@@ -224,16 +224,24 @@ export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher)
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const url = FEEDS[hall as keyof typeof FEEDS];
-    let response = await request(url, prior, fetcher, true, controller.signal);
+    let [response, hours] = await Promise.all([
+      request(url, prior, fetcher, true, controller.signal),
+      fetchHours(hall as keyof typeof FEEDS, fetcher, controller.signal),
+    ]);
     if (response.status === 304) {
       const covered = prior ? dates.filter(date => prior.days.some(day => day.date === date)).length : 0;
       // A shorter cached window must not hide newly requested dates behind an unchanged ETag.
       if (!prior || covered < dates.length) {
         response = await request(url, undefined, fetcher, false, controller.signal);
       } else {
-        const hours = await fetchHours(hall as keyof typeof FEEDS, fetcher, controller.signal) ?? prior.hours;
         const days = reconcilePomonaHours(prior.sourceDays, hours);
-        const state: PomonaState = { ...prior, days, ...(hours ? { hours } : {}) };
+        const state: PomonaState = {
+          provider: 'pomona', version: STATE_VERSION, hash: prior.hash,
+          sourceDays: prior.sourceDays, days,
+          ...(hours ? { hours } : {}),
+          ...(prior.etag ? { etag: prior.etag } : {}),
+          ...(prior.lastModified ? { lastModified: prior.lastModified } : {}),
+        };
         return { days: days.filter(day => dates.includes(day.date)), state };
       }
     }
@@ -243,7 +251,6 @@ export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher)
     const text = await boundedText(response);
     const hash = await sha256(text);
     const sourceDays = prior?.hash === hash ? prior.sourceDays : parseFeed(text);
-    const hours = await fetchHours(hall as keyof typeof FEEDS, fetcher, controller.signal) ?? prior?.hours;
     const allDays = reconcilePomonaHours(sourceDays, hours);
     const state: PomonaState = {
       provider: 'pomona',
@@ -256,6 +263,9 @@ export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher)
       ...(response.headers.get('last-modified') ? { lastModified: response.headers.get('last-modified')! } : {}),
     };
     return { days: allDays.filter(day => dates.includes(day.date)), state };
+  } catch (error) {
+    controller.abort();
+    throw error;
   } finally {
     clearTimeout(timeout);
   }

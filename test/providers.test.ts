@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { refreshPomona } from '../src/providers/pomona';
+import { parsePomonaHours } from '../src/providers/pomona-hours';
 import { refreshSodexo } from '../src/providers/sodexo';
 import type { Fetcher } from '../src/types';
 
@@ -149,7 +150,6 @@ const recipe = {
 };
 
 const fraryHours = `<!doctype html><div class="dining-hours-top editorial">
-  <!-- <p><strong>Old hours</strong></p><p><span>Breakfast:</span> 6 - 8 a.m.</p> -->
   <h2>Hours</h2><div><p><strong>Frary's regular hours of operation are:</strong></p></div>
   <div><div><p><strong>Monday - Friday</strong></p><p>
     <span>Breakfast:</span> 7:30 - 10 a.m.<br>
@@ -159,10 +159,30 @@ const fraryHours = `<!doctype html><div class="dining-hours-top editorial">
   </p></div><div><p><strong>Saturdays &amp; Sundays (and holidays)</strong></p><p>
     <span>Continental Breakfast:</span> 7:30 - 9:30 a.m.<br>
     <span>Brunch:</span> 10:30 a.m. - 1:30 p.m.<br>
+    <!-- <span>Breakfast:</span> 6 - 8 a.m.<br> -->
     <span>Continuous Service:</span> 1:30 - 4:30 p.m.<br>
     <span>Dinner:</span> 5 - 7:30 p.m.
   </p></div></div>
 </div>`;
+
+test('Pomona hours accept generic day ranges and PM starts without leaking across headings', () => {
+  const hours = parsePomonaHours(`<div class="dining-hours-top">
+    <p>Monday - Thursday</p><p>Dinner: 4 p.m. - 6 p.m.</p>
+    <p>Winter Break</p><p>Dinner: 5 p.m. - 7 p.m.</p>
+    <p>Tuesday - Saturday</p><p>Lunch: 11 a.m. - 1 p.m.</p>
+    <p>Every day</p><p>Breakfast: 7 a.m. - 9 a.m.</p>
+  </div>`);
+  assert.deepEqual(hours?.[0], [{ name: 'Breakfast', startTime: '07:00', endTime: '09:00' }]);
+  assert.deepEqual(hours?.[1], [
+    { name: 'Dinner', startTime: '16:00', endTime: '18:00' },
+    { name: 'Breakfast', startTime: '07:00', endTime: '09:00' },
+  ]);
+  assert.deepEqual(hours?.[5], [
+    { name: 'Lunch', startTime: '11:00', endTime: '13:00' },
+    { name: 'Breakfast', startTime: '07:00', endTime: '09:00' },
+  ]);
+  assert.equal(hours?.[1]?.some(service => service.startTime === '17:00'), false);
+});
 
 test('Pomona reconciles Frary weekend hours without inventing a continental menu', async () => {
   const menu = [
@@ -188,13 +208,75 @@ test('Pomona reconciles Frary weekend hours without inventing a continental menu
   ]);
 });
 
+test('Pomona prefers a real brunch meal and drops feed periods outside official hours', async () => {
+  const menu = [
+    { '@servedate': '20260920', '@mealperiodname': 'Breakfast', recipes: { recipe: { ...recipe, '@shortName': 'Breakfast dish' } } },
+    { '@servedate': '20260920', '@mealperiodname': 'Brunch', recipes: { recipe: { ...recipe, '@shortName': 'Brunch dish' } } },
+    { '@servedate': '20260920', '@mealperiodname': 'Lunch', recipes: { recipe: { ...recipe, '@shortName': 'Lunch dish' } } },
+    { '@servedate': '20260920', '@mealperiodname': 'Dinner', recipes: { recipe } },
+  ];
+  const result = await refreshPomona('frary', ['2026-09-20'], undefined, async input =>
+    String(input).endsWith('/Frary.json')
+      ? new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json' } })
+      : new Response(fraryHours, { headers: { 'content-type': 'text/html' } }));
+  assert.deepEqual(result.days[0].meals.map(meal => meal.name), ['Continental Breakfast', 'Brunch', 'Dinner']);
+  assert.equal(result.days[0].meals[1].stations[0].items[0].name, 'Brunch dish');
+});
+
+test('Pomona maps Breakfast to an official Brunch service even without Continental Breakfast', async () => {
+  const hours = `<div class="dining-hours-top"><p>Saturday - Sunday</p><p>Brunch: 10:30 a.m. - 1 p.m.</p></div>`;
+  const menu = { '@servedate': '20260920', '@mealperiodname': 'Breakfast', recipes: { recipe } };
+  const result = await refreshPomona('frary', ['2026-09-20'], undefined, async input =>
+    String(input).endsWith('/Frary.json')
+      ? new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json' } })
+      : new Response(hours, { headers: { 'content-type': 'text/html' } }));
+  assert.deepEqual(result.days[0].meals.map(meal => meal.name), ['Brunch']);
+  assert.equal(result.days[0].meals[0].stations[0].items[0].name, 'Vegetable Curry');
+});
+
+test('Pomona fetches feed and hours concurrently', async () => {
+  let hoursStarted = false;
+  const menu = { '@servedate': '20260920', '@mealperiodname': 'Breakfast', recipes: { recipe } };
+  await refreshPomona('frary', ['2026-09-20'], undefined, async input => {
+    if (!String(input).endsWith('/Frary.json')) {
+      hoursStarted = true;
+      return new Response(fraryHours, { headers: { 'content-type': 'text/html' } });
+    }
+    await Promise.resolve();
+    assert.equal(hoursStarted, true);
+    return new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json' } });
+  });
+});
+
+test('Pomona clears cached hours when the current hours page fails', async () => {
+  const menu = { '@servedate': '20260920', '@mealperiodname': 'Breakfast', recipes: { recipe } };
+  const first = await refreshPomona('frary', ['2026-09-20'], undefined, async input =>
+    String(input).endsWith('/Frary.json')
+      ? new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json', etag: '"same"' } })
+      : new Response(fraryHours, { headers: { 'content-type': 'text/html' } }));
+
+  for (const feedStatus of [200, 304]) {
+    const result = await refreshPomona('frary', ['2026-09-20'], first.state, async input => {
+      if (!String(input).endsWith('/Frary.json')) return new Response('', { status: 503 });
+      return feedStatus === 304
+        ? new Response(null, { status: 304 })
+        : new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json' } });
+    });
+    assert.deepEqual(result.days[0].meals.map(({ name, startTime, endTime }) => ({ name, startTime, endTime })), [
+      { name: 'Breakfast', startTime: undefined, endTime: undefined },
+    ]);
+    assert.equal('hours' in result.state, false);
+  }
+});
+
 test('Pomona groups records into meals and stations without dropping recipes', async () => {
   const menu = [
     { '@servedate': '20260906', '@mealperiodname': 'Lunch', '@menubulletin': '', recipes: { recipe: [recipe, { ...recipe, '@shortName': 'Second Curry' }] } },
     { '@servedate': '20260906', '@mealperiodname': 'Dinner', '@menubulletin': '', recipes: { recipe: { ...recipe, '@category': 'Mainline' } } },
   ];
   const response = new Response(pomonaJsonp(menu), { headers: { 'content-type': 'application/json', etag: '"abc"', 'last-modified': 'Sun, 06 Sep 2026 19:00:00 GMT' } });
-  const result = await refreshPomona('frank', ['2026-09-06'], undefined, async () => response);
+  const result = await refreshPomona('frank', ['2026-09-06'], undefined, async input =>
+    String(input).endsWith('/Frank.json') ? response : new Response('', { status: 503 }));
   assert.equal(result.days[0].meals.length, 2);
   assert.equal(result.days[0].meals[0].name, 'Lunch');
   assert.equal(result.days[0].meals[0].period, 'lunch');

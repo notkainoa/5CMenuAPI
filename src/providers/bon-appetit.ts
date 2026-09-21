@@ -15,7 +15,7 @@ import { validTime } from '../dates';
 import { MEAL_PERIODS, withMealPeriod } from '../periods';
 import { refineBonAppetitMeals, type CatalogItem } from './bon-appetit-catalog';
 
-const STATE_VERSION = 7;
+const STATE_VERSION = 8;
 const PROVIDER = 'bon-appetit';
 
 const CAFES = {
@@ -321,7 +321,16 @@ function weekdayRangeIncludes(date: string, start: string, end: string): boolean
 }
 
 function collinsWeeklyContinental(html: string, date: string): Meal | undefined {
-  for (const row of elementBlocks(html, 'li', 'day-part')) {
+  const statuses = /<p\b([^>]*)>([\s\S]*?)<\/p>/gi;
+  let status: RegExpExecArray | null;
+  let schedule: string | undefined;
+  while ((status = statuses.exec(html)) !== null) {
+    if (!hasClass(status[1], 'current-status') || textContent(status[2]).toLowerCase() !== 'weekly schedule') continue;
+    schedule = /^\s*<ul\b[^>]*>([\s\S]*?)<\/ul>/i.exec(html.slice(statuses.lastIndex))?.[1];
+    break;
+  }
+  if (!schedule) return undefined;
+  for (const row of elementBlocks(schedule, 'li', 'day-part')) {
     const label = elementBlocks(row.body, 'span', 'pull-left')[0];
     const hours = elementBlocks(row.body, 'span', 'pull-right')[0];
     if (!label || !hours || textContent(label.body).toLowerCase() !== 'continental breakfast') continue;
@@ -337,7 +346,7 @@ function collinsWeeklyContinental(html: string, date: string): Meal | undefined 
   return undefined;
 }
 
-function collinsSpecialHours(html: string, date: string, meals: Meal[]): { meals: Meal[]; brunchSpecial: boolean } {
+function collinsSpecialHours(html: string, date: string, meals: Meal[]): { meals: Meal[]; hasSpecial: boolean } {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const [year, month, day] = date.split('-').map(Number);
   const dateLabel = `${monthNames[month - 1]} ${day}`;
@@ -360,11 +369,12 @@ function collinsSpecialHours(html: string, date: string, meals: Meal[]): { meals
   const reconciled = meals.filter(meal => !special.has('brunch') || special.has(meal.name.toLowerCase()) ||
     !['breakfast', 'continental breakfast', 'lunch'].includes(meal.name.toLowerCase()))
     .map(meal => ({ ...meal, ...special.get(meal.name.toLowerCase()) }));
-  return { meals: reconciled, brunchSpecial: special.has('brunch') };
+  return { meals: reconciled, hasSpecial: special.size > 0 };
 }
 
 function addCollinsWeeklyContinental(html: string, date: string, meals: Meal[]): Meal[] {
   if (meals.some(meal => meal.name.toLowerCase() === 'continental breakfast')) return meals;
+  if (!meals.some(meal => meal.period === 'breakfast')) return meals;
   const continental = collinsWeeklyContinental(html, date);
   if (!continental) return meals;
   return [...meals, continental].sort((left, right) =>
@@ -385,7 +395,7 @@ export function parseBonAppetitPage(html: string, requestedDate: string, hall?: 
   const parsedMeals = mealSections.map(section => mealFromSection(section, itemData));
   const collins = hall === 'collins' ? collinsSpecialHours(html, requestedDate, parsedMeals) : undefined;
   const refinedMeals = refineBonAppetitMeals(collins?.meals ?? parsedMeals);
-  const meals = hall === 'collins' && !collins?.brunchSpecial
+  const meals = hall === 'collins' && !collins?.hasSpecial
     ? addCollinsWeeklyContinental(html, requestedDate, refinedMeals) : refinedMeals;
   const itemCount = meals.reduce((sum, meal) => sum + meal.stations.reduce((stationSum, station) => stationSum + station.items.length, 0), 0);
   if (itemCount === 0) throw new Error('Bon Appétit page has dated dayparts but no menu items');

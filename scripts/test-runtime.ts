@@ -75,13 +75,19 @@ const collectorRuntime = new Miniflare(convertV4MiniflareOptions({
       return new RuntimeResponse(JSON.stringify([{ name: 'Lunch', groups: [{ name: 'Main', items: [{ formalName: 'Rice' }] }] }]), { headers: { 'content-type': 'application/json' } });
     }
     if (url.hostname === 'api.pomona.edu') {
-      const records = pomonaDates.map(date => ({ '@servedate': date.replaceAll('-', ''), '@mealperiodname': 'Lunch', recipes: { recipe: { '@shortName': 'Soup', '@category': 'Main' } } }));
+      const records = pomonaDates.flatMap(date => {
+        const weekend = [0, 6].includes(new Date(`${date}T00:00:00Z`).getUTCDay());
+        return (weekend ? ['Breakfast', 'Dinner'] : ['Breakfast', 'Lunch', 'Dinner']).map(meal => ({
+          '@servedate': date.replaceAll('-', ''), '@mealperiodname': meal,
+          recipes: { recipe: { '@shortName': `${meal} dish`, '@category': 'Main' } },
+        }));
+      });
       return new RuntimeResponse(`/**/ menuData(${JSON.stringify({ EatecExchange: { menu: records } })});`, { headers: { 'content-type': 'application/json' } });
     }
     if (url.hostname === 'www.pomona.edu') {
       return new RuntimeResponse(`<div class="dining-hours-top editorial">
-        <p><strong>Monday - Friday</strong></p><p><span>Lunch:</span> 11 a.m. - 1 p.m.</p>
-        <p><strong>Saturdays &amp; Sundays</strong></p><p><span>Lunch:</span> 11 a.m. - 1 p.m.</p>
+        <p><strong>Monday - Friday</strong></p><p><span>Breakfast:</span> 7:30 - 9 a.m.<br><span>Lunch:</span> 11 a.m. - 1 p.m.<br><span>Dinner:</span> 5 - 7 p.m.</p>
+        <p><strong>Saturdays &amp; Sundays</strong></p><p><span>Continental Breakfast:</span> 7:30 - 9:30 a.m.<br><span>Brunch:</span> 10:30 a.m. - 1:30 p.m.<br><span>Dinner:</span> 5 - 7:30 p.m.</p>
       </div><div class="dining-hall-location">Test</div>`, { headers: { 'content-type': 'text/html' } });
     }
     throw new Error(`Unexpected outbound request in runtime test: ${url}`);
@@ -103,6 +109,18 @@ try {
   for (const date of dates) {
     assert.equal(Object.keys(snapshot.menus[date]).length, 7);
     assert.ok(Object.values(snapshot.menus[date]).every(menu => menu?.status === 'ok'));
+  }
+  const weekend = dates.find(date => [0, 6].includes(new Date(`${date}T00:00:00Z`).getUTCDay()));
+  assert.ok(weekend);
+  for (const hall of ['frank', 'frary'] as const) {
+    assert.deepEqual(snapshot.menus[weekend][hall]?.meals?.map(meal => ({
+      name: meal.name, startTime: meal.startTime, endTime: meal.endTime,
+      dishes: meal.stations.flatMap(station => station.items).length,
+    })), [
+      { name: 'Continental Breakfast', startTime: '07:30', endTime: '09:30', dishes: 0 },
+      { name: 'Brunch', startTime: '10:30', endTime: '13:30', dishes: 1 },
+      { name: 'Dinner', startTime: '17:00', endTime: '19:30', dishes: 1 },
+    ]);
   }
   // Same-hour duplicate triggers must not scrape or rewrite the snapshot.
   await Promise.all([worker.scheduled(), worker.scheduled()]);
