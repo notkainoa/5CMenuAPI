@@ -69,14 +69,29 @@ const collectorRuntime = new Miniflare(convertV4MiniflareOptions({
     const url = new URL(request.url);
     if (url.hostname.endsWith('cafebonappetit.com')) {
       const date = url.pathname.split('/').filter(Boolean).at(-1);
-      return new RuntimeResponse(`<script>Bamco.menu_items={"1":{"label":"Tofu"}};</script><section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${date}"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="1"></div></div></section>`, { headers: { 'content-type': 'text/html' } });
+      const collinsHours = url.hostname === 'collins-cmc.cafebonappetit.com'
+        ? `<p class="current-status">Weekly Schedule</p><ul><li class="day-part dotted-leader-container"><span class="pull-left">Continental Breakfast</span><span class="pull-right">Mon-Fri, 9:00 am - 10:00 am</span></li></ul>`
+        : '';
+      return new RuntimeResponse(`<script>Bamco.menu_items={"1":{"label":"Tofu"}};</script><section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${date}"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="1"></div></div></section>${collinsHours}`, { headers: { 'content-type': 'text/html' } });
     }
     if (url.hostname === 'api-prd.sodexomyway.net') {
       return new RuntimeResponse(JSON.stringify([{ name: 'Lunch', groups: [{ name: 'Main', items: [{ formalName: 'Rice' }] }] }]), { headers: { 'content-type': 'application/json' } });
     }
     if (url.hostname === 'api.pomona.edu') {
-      const records = pomonaDates.map(date => ({ '@servedate': date.replaceAll('-', ''), '@mealperiodname': 'Lunch', recipes: { recipe: { '@shortName': 'Soup', '@category': 'Main' } } }));
+      const records = pomonaDates.flatMap(date => {
+        const weekend = [0, 6].includes(new Date(`${date}T00:00:00Z`).getUTCDay());
+        return (weekend ? ['Breakfast', 'Dinner'] : ['Breakfast', 'Lunch', 'Dinner']).map(meal => ({
+          '@servedate': date.replaceAll('-', ''), '@mealperiodname': meal,
+          recipes: { recipe: { '@shortName': `${meal} dish`, '@category': 'Main' } },
+        }));
+      });
       return new RuntimeResponse(`/**/ menuData(${JSON.stringify({ EatecExchange: { menu: records } })});`, { headers: { 'content-type': 'application/json' } });
+    }
+    if (url.hostname === 'www.pomona.edu') {
+      return new RuntimeResponse(`<div class="dining-hours-top editorial">
+        <p><strong>Monday - Friday</strong></p><p><span>Breakfast:</span> 7:30 - 9 a.m.<br><span>Lunch:</span> 11 a.m. - 1 p.m.<br><span>Dinner:</span> 5 - 7 p.m.</p>
+        <p><strong>Saturdays &amp; Sundays</strong></p><p><span>Continental Breakfast:</span> 7:30 - 9:30 a.m.<br><span>Brunch:</span> 10:30 a.m. - 1:30 p.m.<br><span>Dinner:</span> 5 - 7:30 p.m.</p>
+      </div><div class="dining-hall-location">Test</div>`, { headers: { 'content-type': 'text/html' } });
     }
     throw new Error(`Unexpected outbound request in runtime test: ${url}`);
   },
@@ -91,13 +106,37 @@ try {
   const snapshot = JSON.parse(stored) as Snapshot;
   const dates = Object.keys(snapshot.menus).sort();
   assert.equal(dates.length, 7);
-  // 3 Bon Appétit halls × 7 dates, 7 Sodexo dates, and 3 Pomona feeds.
-  const expectedSourceCalls = 3 * dates.length + dates.length + 3;
+  // 3 Bon Appétit halls × 7 dates, 7 Sodexo dates, 3 Pomona feeds, and 2 Pomona hours pages.
+  const expectedSourceCalls = 3 * dates.length + dates.length + 3 + 2;
   assert.equal(sourceCalls, expectedSourceCalls);
   for (const date of dates) {
     assert.equal(Object.keys(snapshot.menus[date]).length, 7);
     assert.ok(Object.values(snapshot.menus[date]).every(menu => menu?.status === 'ok'));
   }
+  const weekend = dates.find(date => [0, 6].includes(new Date(`${date}T00:00:00Z`).getUTCDay()));
+  assert.ok(weekend);
+  for (const hall of ['frank', 'frary'] as const) {
+    assert.deepEqual(snapshot.menus[weekend][hall]?.meals?.map(meal => ({
+      name: meal.name, startTime: meal.startTime, endTime: meal.endTime,
+      dishes: meal.stations.flatMap(station => station.items).length,
+    })), [
+      { name: 'Continental Breakfast', startTime: '07:30', endTime: '09:30', dishes: 0 },
+      { name: 'Brunch', startTime: '10:30', endTime: '13:30', dishes: 1 },
+      { name: 'Dinner', startTime: '17:00', endTime: '19:30', dishes: 1 },
+    ]);
+  }
+  const weekday = dates.find(date => {
+    const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+    return day >= 1 && day <= 5;
+  });
+  assert.ok(weekday);
+  assert.deepEqual(snapshot.menus[weekday].collins?.meals?.map(meal => ({
+    name: meal.name, startTime: meal.startTime, endTime: meal.endTime,
+    dishes: meal.stations.flatMap(station => station.items).length,
+  })), [
+    { name: 'Continental Breakfast', startTime: '09:00', endTime: '10:00', dishes: 0 },
+    { name: 'Lunch', startTime: undefined, endTime: undefined, dishes: 1 },
+  ]);
   // Same-hour duplicate triggers must not scrape or rewrite the snapshot.
   await Promise.all([worker.scheduled(), worker.scheduled()]);
   assert.equal(sourceCalls, expectedSourceCalls);
