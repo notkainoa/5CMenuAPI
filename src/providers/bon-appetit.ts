@@ -374,7 +374,6 @@ function collinsSpecialHours(html: string, date: string, meals: Meal[]): { meals
 
 function addCollinsWeeklyContinental(html: string, date: string, meals: Meal[]): Meal[] {
   if (meals.some(meal => meal.name.toLowerCase() === 'continental breakfast')) return meals;
-  if (!meals.some(meal => meal.period === 'breakfast')) return meals;
   const continental = collinsWeeklyContinental(html, date);
   if (!continental) return meals;
   return [...meals, continental].sort((left, right) =>

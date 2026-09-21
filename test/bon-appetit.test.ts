@@ -89,6 +89,16 @@ describe('parseBonAppetitPage', () => {
     assert.equal(meals?.find(meal => meal.name === 'Continental Breakfast')?.stations[0].items.length, 1);
   });
 
+  it('publishes scheduled Collins continental hours without a breakfast menu section', () => {
+    const item = `<script>Bamco.menu_items={"101":{"label":"tofu"}};</script>`;
+    const lunch = `<section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${TOMORROW}" data-start-time="11:00" data-end-time="13:00"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="101"></div></div></section>`;
+    const meals = parseBonAppetitPage(item + lunch + collinsWeekly, TOMORROW, 'collins')?.meals;
+    assert.deepEqual(meals?.map(meal => ({ name: meal.name, dishes: meal.stations.flatMap(station => station.items).length })), [
+      { name: 'Continental Breakfast', dishes: 0 },
+      { name: 'Lunch', dishes: 1 },
+    ]);
+  });
+
   it('does not add weekly Collins breakfast service when dated special hours apply', () => {
     const dinner = `<section class="site-panel--daypart" data-jump-nav-title="Dinner"><div class="site-panel__daypart-container" data-end-date="${TOMORROW}" data-start-time="17:00" data-end-time="19:00"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="101"></div></div></section>`;
     const special = `<div class='cafe-hours-special'><ul><li class='day-part dotted-leader-container'><span class='pull-left'>Dinner</span><span class='pull-right'>September 7, 4:30 pm - 6:30 pm</span></li></ul></div>`;
