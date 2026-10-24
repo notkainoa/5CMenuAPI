@@ -1,0 +1,651 @@
+{
+  "reviewer": "GPT-6.1 Sol",
+  "humanApproved": false,
+  "cases": [
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-120b",
+      "hall": "hoch",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s10:i0",
+          "verdict": "weak",
+          "reason": "Plain grilled chicken is credible but ranks below available composed breakfast dishes."
+        },
+        {
+          "sourceId": "m0:s3:i0",
+          "verdict": "weak",
+          "reason": "Deli roast beef is an ambiguous ingredient/plain protein and a weaker highlight than available named composed mains."
+        },
+        {
+          "sourceId": "m1:s3:i0",
+          "verdict": "weak",
+          "reason": "Deli roast beef is an ambiguous ingredient/plain protein and a weaker highlight than available named composed mains."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-20b",
+      "hall": "hoch",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s4:i0",
+          "verdict": "wrong",
+          "reason": "Hash brown patty is a breakfast potato accompaniment, not a substantial main."
+        },
+        {
+          "sourceId": "m1:s2:i0",
+          "verdict": "wrong",
+          "reason": "Baja black beans appear among burrito accompaniments; this row does not establish a separate composed bean entree."
+        },
+        {
+          "sourceId": "m1:s3:i0",
+          "verdict": "weak",
+          "reason": "Deli roast beef is a weaker and ambiguous standalone highlight while composed mains remain."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "hoch",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s1:i5",
+          "verdict": "weak",
+          "reason": "Chicken nuggets probably overlap the already selected chicken tender offering; disputed near-duplicate, not a parent component."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-20b",
+      "hall": "malott",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s3:i0",
+          "verdict": "weak",
+          "reason": "Generic pepperoni pizza is eligible but weaker than available named composed dinner choices."
+        },
+        {
+          "sourceId": "m0:s0:i0",
+          "verdict": "weak",
+          "reason": "Plain scrambled eggs are a weaker breakfast choice than the available tofu scramble and bagel program."
+        },
+        {
+          "sourceId": "m0:s0:i1",
+          "verdict": "wrong",
+          "reason": "Standalone roasted sweet potatoes/breakfast potatoes are accompaniments; stronger composed breakfast choices exist."
+        },
+        {
+          "sourceId": "m0:s0:i8",
+          "verdict": "wrong",
+          "reason": "Standalone roasted sweet potatoes/breakfast potatoes are accompaniments; stronger composed breakfast choices exist."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "malott",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i3",
+          "verdict": "weak",
+          "reason": "Breakfast sausage patty is lower-priority staple padding beside chilaquiles, tofu scramble and a bagel bar."
+        },
+        {
+          "sourceId": "m1:s3:i0",
+          "verdict": "weak",
+          "reason": "Generic pepperoni pizza is eligible but weaker than available named composed dinner choices."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-120b",
+      "hall": "malott",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i3",
+          "verdict": "weak",
+          "reason": "Breakfast sausage patty is lower-priority staple padding beside chilaquiles, tofu scramble and a bagel bar."
+        },
+        {
+          "sourceId": "m1:s3:i0",
+          "verdict": "weak",
+          "reason": "Generic pepperoni pizza is eligible but weaker than available named composed dinner choices."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "mcconnell",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s1:i5",
+          "verdict": "weak",
+          "reason": "Jap chae noodles may be a composed entree, but this menu places them among bulgogi/burrito accompaniments with copied station description. Context disputed."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-120b",
+      "hall": "mcconnell",
+      "repeat": 0,
+      "flags": []
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-20b",
+      "hall": "mcconnell",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i3",
+          "verdict": "weak",
+          "reason": "Hot quinoa can be a cereal breakfast, but is weak staple padding here while composed mains remain available. This is a ranking judgment, not a certain side error."
+        },
+        {
+          "sourceId": "m0:s4:i0",
+          "verdict": "weak",
+          "reason": "Plain oatmeal is lower-priority breakfast staple padding despite several composed mains."
+        },
+        {
+          "sourceId": "m1:s3:i1",
+          "verdict": "weak",
+          "reason": "Pull pork slider is a child of the selected grill slider bar; two highlights repeat the same program."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-120b",
+      "hall": "collins",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s2:i2",
+          "verdict": "wrong",
+          "reason": "Cajun grilled zucchini is a vegetable accompaniment beside carved turkey."
+        },
+        {
+          "sourceId": "m1:s6:i0",
+          "verdict": "wrong",
+          "reason": "Chocolate mousse cake is dessert."
+        },
+        {
+          "sourceId": "m1:s5:i0",
+          "verdict": "weak",
+          "reason": "Cauliflower-crust vegetable pizza is eligible but loses to the omitted stuffed pepper and named chicken in this meal."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-20b",
+      "hall": "collins",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i0",
+          "verdict": "weak",
+          "reason": "Plain scrambled eggs are a weaker summary than lumberjack eggs and the omitted carving offering."
+        },
+        {
+          "sourceId": "m1:s5:i1",
+          "verdict": "weak",
+          "reason": "Cauliflower-crust pepperoni pizza is eligible but weaker than omitted Mongolian stir fry."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "collins",
+      "repeat": 0,
+      "flags": []
+    },
+    {
+      "phase": "minimal",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "frank",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s0:i5",
+          "verdict": "wrong",
+          "reason": "Sweet Thai chili sauce is a condiment for rolls/dumplings, not a main."
+        },
+        {
+          "sourceId": "m2:s4:i0",
+          "verdict": "weak",
+          "reason": "Chicken tortilla soup is credible but a disputed weaker slot while the named nacho program remains unrepresented."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-120b",
+      "hall": "frank",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s1:i0",
+          "verdict": "wrong",
+          "reason": "WHOLE EATS text is an allergen/service notice; garlic noodles with skirt steak is the actual adjacent main."
+        },
+        {
+          "sourceId": "m2:s0:i13",
+          "verdict": "weak",
+          "reason": "Kale salad with dates/parmesan is a disputed substantial-main choice; the nacho program is omitted."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-120b",
+      "hall": "frary",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s0:i2",
+          "verdict": "weak",
+          "reason": "Beyond breakfast sausage is lower-priority staple padding while seafood and composed pasta mains are omitted."
+        }
+      ]
+    },
+    {
+      "phase": "minimal",
+      "model": "openai/gpt-oss-20b",
+      "hall": "frary",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s0:i0",
+          "verdict": "weak",
+          "reason": "Pork sausage patty is lower-priority staple padding while seafood/pasta mains remain."
+        },
+        {
+          "sourceId": "m1:s3:i2",
+          "verdict": "weak",
+          "reason": "Chocolate-chip pancakes overlap the selected blueberry pancake offering and consume a second slot while stronger mains are omitted."
+        },
+        {
+          "sourceId": "m2:s2:i0",
+          "verdict": "weak",
+          "reason": "Generic cheese pizza is eligible but weaker than omitted pasta program or named tofu."
+        },
+        {
+          "sourceId": "m2:s5:i0",
+          "verdict": "wrong",
+          "reason": "Raspberry swirl blondie is dessert."
+        }
+      ]
+    },
+    {
+      "phase": "repeat",
+      "model": "openai/gpt-oss-120b",
+      "hall": "mcconnell",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s4:i0",
+          "verdict": "weak",
+          "reason": "Plain hot oatmeal is weak staple padding over the available French toast casserole."
+        },
+        {
+          "sourceId": "m1:s0:i1",
+          "verdict": "wrong",
+          "reason": "Plain spaghetti pasta is a component of the selected Italian program, not an independently established composed entree."
+        },
+        {
+          "sourceId": "m1:s0:i4",
+          "verdict": "weak",
+          "reason": "Beef meatballs are a child of the selected Italian Sunday program; duplicating it displaces the slider offering."
+        }
+      ]
+    },
+    {
+      "phase": "repeat",
+      "model": "openai/gpt-oss-20b",
+      "hall": "mcconnell",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s1:i0",
+          "verdict": "wrong",
+          "reason": "Steamed rice is a grain accompaniment, not a breakfast main."
+        },
+        {
+          "sourceId": "m0:s2:i6",
+          "verdict": "weak",
+          "reason": "Impossible breakfast patties are lower-priority standalone breakfast staples."
+        },
+        {
+          "sourceId": "m1:s3:i1",
+          "verdict": "weak",
+          "reason": "Pull pork slider is a child of the selected slider bar; this duplicates an offering."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "openai/gpt-oss-20b",
+      "hall": "hoch",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s5:i2",
+          "verdict": "weak",
+          "reason": "Generic burger/pizza is eligible but weaker here than the omitted lox sandwich and substantial named plant dishes."
+        },
+        {
+          "sourceId": "m1:s9:i0",
+          "verdict": "weak",
+          "reason": "Generic burger/pizza is eligible but weaker here than the omitted lox sandwich and substantial named plant dishes."
+        },
+        {
+          "sourceId": "m2:s7:i0",
+          "verdict": "wrong",
+          "reason": "Garlic bread is an accompaniment, not a main."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "hoch",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s4:i2",
+          "verdict": "weak",
+          "reason": "Bok choy stir fry is mixed vegetables with oil beside beef/rice; likely accompaniment but standalone entree status is disputed."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "openai/gpt-oss-20b",
+      "hall": "malott",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i0",
+          "verdict": "weak",
+          "reason": "Plain breakfast sausage/bacon/eggs are weaker staples than named composed Breakfast Grill offerings."
+        },
+        {
+          "sourceId": "m0:s0:i1",
+          "verdict": "weak",
+          "reason": "Plain breakfast sausage/bacon/eggs are weaker staples than named composed Breakfast Grill offerings."
+        },
+        {
+          "sourceId": "m0:s0:i2",
+          "verdict": "weak",
+          "reason": "Plain breakfast sausage/bacon/eggs are weaker staples than named composed Breakfast Grill offerings."
+        },
+        {
+          "sourceId": "m0:s0:i3",
+          "verdict": "weak",
+          "reason": "Plain breakfast sausage/bacon/eggs are weaker staples than named composed Breakfast Grill offerings."
+        },
+        {
+          "sourceId": "m1:s1:i8",
+          "verdict": "wrong",
+          "reason": "Hash browns and potatoes o'brien are potato accompaniments, not composed mains."
+        },
+        {
+          "sourceId": "m1:s1:i9",
+          "verdict": "wrong",
+          "reason": "Hash browns and potatoes o'brien are potato accompaniments, not composed mains."
+        },
+        {
+          "sourceId": "m1:s1:i11",
+          "verdict": "weak",
+          "reason": "Grilled ham is a lower-priority standalone breakfast meat."
+        },
+        {
+          "sourceId": "m2:s3:i1",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m2:s3:i2",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m2:s3:i3",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m2:s3:i4",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m3:s3:i1",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m3:s3:i2",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m3:s3:i3",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        },
+        {
+          "sourceId": "m3:s3:i4",
+          "verdict": "weak",
+          "reason": "Eligible pizza flavor, not a side. Four extra pizza slots repeat one ovens offering and crowd out distinct named mains elsewhere."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "malott",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s1:i14",
+          "verdict": "wrong",
+          "reason": "Teriyaki is an unsupported sauce/title fragment with no protein or composed dish supplied; do not infer a main."
+        },
+        {
+          "sourceId": "m2:s2:i0",
+          "verdict": "weak",
+          "reason": "Plain seasoned roasted chicken is eligible but weaker than omitted specific composed offerings."
+        },
+        {
+          "sourceId": "m3:s2:i0",
+          "verdict": "weak",
+          "reason": "Plain seasoned roasted chicken is eligible but weaker than omitted specific composed offerings."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "openai/gpt-oss-20b",
+      "hall": "mcconnell",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i19",
+          "verdict": "wrong",
+          "reason": "Roasted sweet potatoes are a breakfast accompaniment."
+        },
+        {
+          "sourceId": "m0:s0:i0",
+          "verdict": "weak",
+          "reason": "Plain eggs/bacon are weaker staples than the omitted composed breakfast offerings."
+        },
+        {
+          "sourceId": "m0:s0:i9",
+          "verdict": "weak",
+          "reason": "Plain eggs/bacon are weaker staples than the omitted composed breakfast offerings."
+        },
+        {
+          "sourceId": "m1:s2:i3",
+          "verdict": "wrong",
+          "reason": "Roasted potatoes al mojo are an accompaniment, not the adjacent composed Cuban pork entree."
+        },
+        {
+          "sourceId": "m2:s0:i2",
+          "verdict": "weak",
+          "reason": "Roasted chicken shawarma is a component of the already selected Mediterranean pita pocket program."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "openai/gpt-oss-20b",
+      "hall": "collins",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s0:i0",
+          "verdict": "weak",
+          "reason": "Plain eggs, bacon, sausage and oatmeal are weaker staples than greens/gouda scramble and named breakfast choices."
+        },
+        {
+          "sourceId": "m0:s0:i3",
+          "verdict": "weak",
+          "reason": "Plain eggs, bacon, sausage and oatmeal are weaker staples than greens/gouda scramble and named breakfast choices."
+        },
+        {
+          "sourceId": "m0:s0:i4",
+          "verdict": "weak",
+          "reason": "Plain eggs, bacon, sausage and oatmeal are weaker staples than greens/gouda scramble and named breakfast choices."
+        },
+        {
+          "sourceId": "m0:s0:i6",
+          "verdict": "weak",
+          "reason": "Plain eggs, bacon, sausage and oatmeal are weaker staples than greens/gouda scramble and named breakfast choices."
+        },
+        {
+          "sourceId": "m2:s6:i0",
+          "verdict": "wrong",
+          "reason": "Chocolate chip cookies are dessert. This manual food error was not listed in frozen side/heading IDs."
+        },
+        {
+          "sourceId": "m2:s5:i0",
+          "verdict": "weak",
+          "reason": "Meat-lover pizza is eligible but weaker than omitted chicken caprese sandwich."
+        },
+        {
+          "sourceId": "m2:s7:i0",
+          "verdict": "weak",
+          "reason": "Chicken/rice soup is credible but a weaker lunch slot than omitted caprese sandwich."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "collins",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m0:s2:i2",
+          "verdict": "weak",
+          "reason": "Chia pudding is a disputed breakfast highlight and lower-priority than substantial composed mains."
+        },
+        {
+          "sourceId": "m0:s0:i5",
+          "verdict": "weak",
+          "reason": "Morningstar breakfast sausage is lower-priority standalone staple padding."
+        },
+        {
+          "sourceId": "m2:s7:i0",
+          "verdict": "weak",
+          "reason": "Chicken/rice soup is credible but weaker than omitted chicken caprese sandwich."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "openai/gpt-oss-20b",
+      "hall": "frank",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s0:i8",
+          "verdict": "weak",
+          "reason": "Thai mango salad is a disputed substantial-main choice; repeated occurrences are one group, not two slots, but stronger composed meals remain omitted."
+        },
+        {
+          "sourceId": "m1:s6:i0",
+          "verdict": "weak",
+          "reason": "Thai mango salad is a disputed substantial-main choice; repeated occurrences are one group, not two slots, but stronger composed meals remain omitted."
+        },
+        {
+          "sourceId": "m1:s0:i6",
+          "verdict": "weak",
+          "reason": "Chicken gnocchi soup is credible but weaker than omitted waffle sandwich, pork tenderloin and omelet offering."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "frank",
+      "repeat": 0,
+      "flags": []
+    },
+    {
+      "phase": "holdout",
+      "model": "qwen/qwen3.8-27b",
+      "hall": "frary",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m2:s3:i2",
+          "verdict": "weak",
+          "reason": "Simply grilled chicken is eligible but weaker than omitted upgraded omelet program, with a spare highlight slot."
+        }
+      ]
+    },
+    {
+      "phase": "holdout",
+      "model": "openai/gpt-oss-20b",
+      "hall": "frary",
+      "repeat": 0,
+      "flags": [
+        {
+          "sourceId": "m1:s2:i0",
+          "verdict": "weak",
+          "reason": "Generic cheese pizza is eligible but weaker than specific composed choices in this meal."
+        },
+        {
+          "sourceId": "m2:s0:i2",
+          "verdict": "weak",
+          "reason": "Fried rice can be a composed entree, but here the unconfirmed name sits beside beef/tofu and vegetable accompaniments. Context disputed."
+        },
+        {
+          "sourceId": "m2:s3:i3",
+          "verdict": "wrong",
+          "reason": "French fries are an accompaniment, not a main."
+        }
+      ]
+    }
+  ],
+  "curationNote": "The parent audit conservatively treats breakfast hot quinoa and oatmeal as weak staples, matching the five clear side/dessert plus two cereal/grain summary. Unflagged outputs are not certified correct."
+}

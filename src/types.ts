@@ -54,4 +54,8 @@ export interface Snapshot {
   sources: Partial<Record<HallId, SourceState>>;
 }
 export interface SnapshotStore { get(key: string): Promise<string | null>; put(key: string, value: string): Promise<void>; }
-export interface Env { MENUS: SnapshotStore; }
+export interface Env {
+  MENUS: SnapshotStore;
+  GROQ_API_KEY?: string;
+  HIGHLIGHTS_ENABLED?: string;
+}

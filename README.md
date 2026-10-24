@@ -8,7 +8,7 @@ Live API: https://five-c-menu-api.kainoanewton.workers.dev/v1/menus
 
 Every hour, a Cloudflare Cron Trigger calls one private Durable Object. That collector checks the schools' menu sources, processes changed data, and saves one combined snapshot to Cloudflare KV. Public requests read the saved snapshot, with a short edge cache to reduce repeat reads.
 
-The Durable Object gives collection a 30-second CPU allowance instead of the regular free Worker's 10 ms allowance. It uses SQLite storage for a small record of the last completed hour, preventing duplicate hourly runs. Apps never call the collector. Everything needed for operation runs on Cloudflare; GitHub Actions is used only for optional code checks.
+The Durable Object gives collection a 30-second CPU allowance instead of the regular free Worker's 10 ms allowance. It uses SQLite storage for a small record of the last completed hour, preventing duplicate hourly runs. Apps never call the collector. Menu collection and storage run on Cloudflare; optional highlights use Groq. GitHub Actions is used only for optional code checks.
 
 The date window is **today through six days ahead in America/Los_Angeles**, seven calendar days total. Later dates in that window are collected before midnight when the schools have published them. Yesterday is never substituted for today.
 
@@ -26,9 +26,9 @@ No API key is required. All routes support `GET`, `HEAD`, and browser CORS. `/` 
 
 Canonical IDs: `hoch`, `malott`, `mcconnell`, `collins`, `frank`, `frary`, `oldenborg`. The old spelling `mcconnel` is an alias for `mcconnell`.
 
-The only menu query parameter is `date`, supplied at most once as `YYYY-MM-DD`. Dates outside today through six days ahead return HTTP 400, even if an upstream feed contains more dates. Examples with fixed dates must be adjusted when used.
+Menu routes accept `date`, supplied at most once as `YYYY-MM-DD`, and `highlights=true|false`. Highlights are included by default; `?highlights=false` omits the enrichment and its storage read. Both parameters can be combined and must appear at most once. Dates outside today through six days ahead return HTTP 400, even if an upstream feed contains more dates. Examples with fixed dates must be adjusted when used.
 
-Individual response example, with illustrative food:
+Individual response example with `?highlights=false`, with illustrative food:
 
 ```json
 {
@@ -49,7 +49,15 @@ Individual response example, with illustrative food:
 }
 ```
 
-The combined endpoint wraps those same objects in `{ "date": "2026-09-06", "timezone": "America/Los_Angeles", "halls": [...] }`. Actual combined responses always contain seven entries. Internal fingerprints, validators, and parsed source caches are never included in public responses.
+The combined endpoint wraps those same objects in `{ "date": "2026-09-06", "timezone": "America/Los_Angeles", "halls": [...] }`. Actual combined responses always contain seven entries. Source validators and parsed source caches are never included in public responses.
+
+### Menu highlights
+
+When configured with a Groq key, the collector generates today's highlights using `openai/gpt-oss-120b` with low reasoning effort. One request covers all meals for a hall. Generation runs in the background, and saved selections are reused until the menu content changes. Public requests never call Groq.
+
+Each hall includes a `highlights` object with `status` and `meals`. On `ready`, each meal contains `mealIndex`, `name`, selected `items` with original school-provided data plus `id` and `station`, and additive `groups` for short combined titles and original source choices. Existing clients can render the original anchor items. Other statuses are `pending`, `unavailable`, `disabled`, and `not_applicable`; these have an empty highlights meal array. Base menu status remains independent. Use `?highlights=false` for the original response shape.
+
+See [the highlights guide](docs/menu-highlights.md) for the JSON contract, app example, architecture, setup, and current limits. Highlights select up to five offerings per meal. The [grouping experiment](docs/highlight-grouping.md) records multi-model comparisons and remaining food-selection failures. The local grouped candidate has not been deployed or established better overall selection quality.
 
 ### Availability and timestamps
 
@@ -75,7 +83,7 @@ Frank and Frary combine Pomona's Eatec food records with the active hours block 
 
 Collins dated special hours override matching meal times. When those hours list brunch, the collector omits regular breakfast, continental breakfast, and lunch sections unless the special schedule also explicitly lists them. A dinner-only exception does not remove other meals. On regular weekdays, the collector also publishes Collins's schedule-only continental breakfast period with an empty `stations` array. It does not copy breakfast dishes into that period. This handles Collins's current holiday and weekly schedule markup; it is not a general operating-hours integration for every hall.
 
-HTTP input/storage errors use `{ "error": { "code": "...", "message": "..." } }`. Codes include `invalid_date`, `unsupported_date`, `unknown_query_parameter`, `hall_not_found`, `not_found`, `method_not_allowed`, and `storage_unavailable`. Input errors return 400, unknown resources 404, unsupported methods 405, and storage failures 503.
+HTTP input/storage errors use `{ "error": { "code": "...", "message": "..." } }`. Codes include `invalid_date`, `invalid_highlights`, `unsupported_date`, `unknown_query_parameter`, `hall_not_found`, `not_found`, `method_not_allowed`, and `storage_unavailable`. Input errors return 400, unknown resources 404, unsupported methods 405, and storage failures 503.
 
 Successful responses have an ETag and cache for at most 60 seconds, shortened before California midnight. Errors are not cached. `If-None-Match` can return 304 with no body. Cached calls still count as Worker requests, but can avoid KV reads and repeated JSON processing.
 
@@ -110,7 +118,7 @@ npm run dev
 The local API starts without menus. Trigger a local scheduled run to populate it:
 
 ```sh
-curl 'http://localhost:8787/cdn-cgi/handler/scheduled?cron=0%20*%20*%20*%20*'
+curl 'http://localhost:8787/__scheduled'
 curl 'http://localhost:8787/v1/menus'
 ```
 
@@ -132,7 +140,7 @@ The configuration creates a **SQLite-backed** `MenuCollector` Durable Object, as
 
 No external scheduler, public refresh endpoint, Cloudflare API token in application code, or custom domain is required. Use the deployed `workers.dev` URL. The public Sodexo browser key in its adapter comes from HMC's own public client; it is not a Cloudflare account credential.
 
-At 20,000 API calls/day, the estimated budget is:
+Without Groq highlights, at 20,000 API calls/day, the estimated budget is:
 
 | Resource | Expected use | Free daily allowance |
 | --- | --- | --- |
@@ -142,6 +150,8 @@ At 20,000 API calls/day, the estimated budget is:
 | Durable Object requests | Normally 24 | 100,000 |
 | Durable Object duration | About 62 GB-seconds if each refresh lasts 20 seconds | 13,000 GB-seconds |
 | Durable Object storage writes | Normally 24 small completion records | 100,000 rows |
+
+Enabled highlights add one KV read per uncached menu request, background Groq calls, and Durable Object/KV operations for each generation attempt. Opting out skips that extra read.
 
 These allowances are shared with other projects on the account. The duration estimate is `24 × 20 seconds × 0.128 GB`; actual duration varies with school response times. Network waiting counts toward Durable Object duration, though it is excluded from CPU time. Unchanged checks still save freshness metadata. Old public dates are removed when the snapshot is replaced. Deletion does not refund writes.
 
