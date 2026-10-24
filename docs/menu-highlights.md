@@ -1,158 +1,188 @@
-# Groq menu highlights
+# Menu highlights
 
-The API generates highlights centrally with `openai/gpt-oss-120b`, low reasoning effort, and strict JSON output. Apps download saved results. They do not need Groq credentials or their own prompts.
+Each hall's menu for today can include up to five highlighted offerings per meal, chosen by `openai/gpt-oss-120b` on Groq. The API generates highlights in the background and saves them. Apps only read the saved results: they need no Groq key, no prompt, and no extra request.
 
-## Data flow
+This document is the integration contract. For how the selection was tuned and what is still imperfect, see [highlights-history.md](highlights-history.md).
 
-```mermaid
-flowchart LR
-  Cron[Hourly collection] --> Menus[Menu snapshot in KV]
-  Cron --> Alarm[Collector alarm]
-  Menus --> Alarm
-  Alarm --> Groq[One hall-day request to Groq]
-  Groq --> Validate[Validate meal and item references]
-  Validate --> Saved[Saved highlights in KV]
-  Menus --> API[Public menu API]
-  Saved --> API
-  API --> Apps[Apps and websites]
-```
+## Requesting highlights
 
-The existing `MenuCollector` owns generation through alarms. No new Cloudflare resource or migration is required. Generation starts after the hourly menu snapshot has been saved, so inference cannot delay publishing menus. Alarms perform one request at a time, with at least 65 seconds between normal attempts. The complete hall-day input retains meal and station groupings. The prompt includes names, descriptions, vegan/vegetarian/plant-based flags, and featured status. Station names appear once per station; nutrition and allergen metadata stay out of the prompt and remain available in the API.
+Highlights are included by default on both menu routes.
 
-The local version 8 candidate selects up to five distinct offerings per meal, with no minimum. It can group genuine alternatives with a short source-grounded title and explicitly requests their available counterparts. Original item names and metadata remain unchanged. Singleton display titles come from source names; only combined variants use generated wording. Empty services remain empty and menu content is data. The prompt requests mains and named programs, but live tests still found sides, headings and ranking mistakes. This candidate has not been deployed or established better overall food quality. See [the grouping experiment](highlight-grouping.md).
-
-The request schema requires every meal and limits each selection to five items, with zero items for empty services. The server checks that every meal occurs once, every item belongs to its meal, and IDs are neither duplicated nor invented. Inference uses short IDs unique across the hall-day to reduce token usage while detecting cross-meal references. The server resolves them to the original positional IDs and menu objects before storing or serving selections.
-
-## API contract
-
-| Request | Behavior |
+| Request | Result |
 | --- | --- |
-| `/v1/menus` | All halls, with saved highlights or a status |
-| `/v1/menus/collins?highlights=true` | Explicitly include highlights for one hall |
-| `/v1/menus?highlights=false` | Omit highlights and skip their KV read |
-| `/v1/menus/collins?date=2026-09-29&highlights=false` | Combine date selection and opt-out |
+| `GET /v1/menus` | All seven halls, each with a `highlights` object |
+| `GET /v1/menus/collins` | One hall with `highlights` |
+| `GET /v1/menus?highlights=false` | The original response shape: no `highlights` field, and no extra storage read |
+| `GET /v1/menus/collins?date=2026-10-24&highlights=true` | `date` and `highlights` can be combined |
 
-Use a date within the API's supported window. Only the literal values `true` and `false` are accepted, at most once. The default is `true`.
+`highlights` accepts only the literal values `true` and `false`, at most once. Anything else returns HTTP 400 with error code `invalid_highlights`. The base menu fields are identical with or without highlights.
 
-An example `highlights` field on a hall response:
+## The `highlights` object
+
+Every hall response has `highlights.status`, plus a `meals` array that is empty unless the status is `ready`.
+
+| `status` | Meaning | What to show |
+| --- | --- | --- |
+| `ready` | Valid picks for exactly this menu content | The highlights |
+| `pending` | Not generated yet for this menu version. Covers the first run of the day, a menu that just changed, and retries in progress. | The full menu; check again later |
+| `unavailable` | Generation finished without a usable result. See `reason`. | The full menu |
+| `disabled` | The server has no Groq key, or the operator turned highlights off | The full menu; hide any highlights UI |
+| `not_applicable` | Closed or unavailable hall, a menu with no items, or any date other than today | The full menu |
+
+`unavailable` responses can include a `reason`:
+
+| `reason` | Meaning |
+| --- | --- |
+| `attempts_exhausted` | Three attempts for this menu version failed (rate limits, timeouts, malformed or invalid model output) |
+| `daily_budget_exhausted` | The server's 21-call daily cap was reached before this version could finish its attempts |
+| `input_too_large` | This hall-day menu is too large to send |
+| `generation_failed` | Groq rejected the request in a way that retrying will not fix |
+
+A saved record that fails revalidation, which should not happen, is also reported as `unavailable`, with no `reason`.
+
+`hall.status` is independent of highlights. A `stale` menu still shows its last verified food, so it gets highlights for that exact content. Keep showing the existing staleness messaging.
+
+### Ready example
 
 ```json
 {
-  "status": "ready",
-  "provider": "groq",
-  "model": "openai/gpt-oss-120b",
-  "generatedAt": "2026-09-29T14:03:00.000Z",
-  "menuVersion": "<content hash>",
-  "meals": [
-    {
-      "mealIndex": 0,
-      "name": "Lunch",
-      "items": [
-        {
-          "id": "m0:s0:i0",
-          "station": "Main",
-          "name": "Vegetable curry",
-          "vegan": true
-        }
-      ],
-      "groups": [
-        {
-          "title": "Vegetable curry",
-          "kind": "single",
-          "sourceIds": ["m0:s0:i0"],
-          "componentIds": [],
-          "sourceItems": [{"id": "m0:s0:i0", "station": "Main", "name": "Vegetable curry", "vegan": true}],
-          "componentItems": []
-        }
-      ]
-    }
-  ]
+  "hall": "mcconnell",
+  "date": "2026-10-04",
+  "status": "ok",
+  "meals": [ "...unchanged base menu..." ],
+  "highlights": {
+    "status": "ready",
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "generatedAt": "2026-10-04T15:03:00.000Z",
+    "menuVersion": "9c1f…",
+    "meals": [
+      {
+        "mealIndex": 1,
+        "name": "Dinner",
+        "items": [
+          { "id": "m1:s1:i1", "station": "global", "name": "beef bulgogi", "containsBeef": true, "allergens": ["soy"] },
+          { "id": "m1:s0:i0", "station": "chef's table", "name": "Italian Pitzer Sunday" }
+        ],
+        "groups": [
+          {
+            "title": "Chicken or beef bulgogi",
+            "kind": "variants",
+            "sourceIds": ["m1:s1:i1", "m1:s1:i2"],
+            "sourceItems": [
+              { "id": "m1:s1:i1", "station": "global", "name": "beef bulgogi", "containsBeef": true, "allergens": ["soy"] },
+              { "id": "m1:s1:i2", "station": "global", "name": "dak chicken bulgogi", "containsPoultry": true }
+            ]
+          },
+          {
+            "title": "Italian Pitzer Sunday",
+            "kind": "single",
+            "sourceIds": ["m1:s0:i0"],
+            "sourceItems": [{ "id": "m1:s0:i0", "station": "chef's table", "name": "Italian Pitzer Sunday" }]
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-`mealIndex` points into the hall's base `meals` array. Item IDs identify positions within this menu version. They are not permanent dish IDs. The selected items carry the same optional descriptions, dietary flags, calories, and allergens as their source items. The API adds no inferred dietary labels. Existing apps can render `items`, one original anchor per offering. New apps render `groups[].title` and use `sourceItems` for the underlying choices and individual metadata. A title such as "Chicken or beef bulgogi" can cover two source items while using one slot. Groups have no aggregate dietary or allergen flags.
+Field reference for a `ready` meal:
 
-`kind: single` means one source row, including a named meal program. New minimal inference does not generate component links; `componentIds` and `componentItems` are empty. Stored detailed program groups remain readable. Full menus still include the original program components. Old saved flat selections for the current menu hash render singleton groups.
+- `mealIndex` is the index into the hall's base `meals` array. `name` repeats that meal's name. There is one entry for every base meal, in the same order. A meal with no worthwhile mains has `items: []` and `groups: []`.
+- `groups` holds the offerings, between zero and five, in the model's ranked order. Five is a cap, not a target.
+  - `title` is plain text of at most 64 characters. For `kind: "single"` it is the source item's name with markup stripped, shortened at a word boundary only if it is too long. For `kind: "variants"` it is a short combined label such as "Chicken or beef bulgogi" (see the rules below).
+  - `kind` is `"single"` (one menu row, including a named meal program such as "Grill slider bar") or `"variants"` (two to four rows that are the same dish with different proteins or options).
+  - `sourceIds` and `sourceItems` list the underlying menu rows. Each `sourceItems` entry is the original school-provided item, unchanged, plus `id` and `station`.
+- `items` has one entry per group: the first source of each group, in the same order. It is a flat convenience list for clients that don't render groups.
 
-| Status | Meaning |
-| --- | --- |
-| `ready` | Valid selections match this exact menu content |
-| `pending` | No matching saved result yet, including after menu changes |
-| `unavailable` | Generation failed, input exceeded the size guard, or saved selections failed validation |
-| `disabled` | Missing Groq secret or operator kill switch is off |
-| `not_applicable` | Closed/unavailable hall or a future date |
+Groups have **no aggregate dietary, allergen or nutrition fields**. Each source item keeps its own `vegan`, `allergens`, `calories` and so on. A "Chicken or tofu curry" group does not claim to be vegan, even if one of its sources is.
 
-Every non-ready result has `meals: []`. Unavailable results can include `reason`: `daily_budget_exhausted`, `attempts_exhausted`, `input_too_large`, or `generation_failed`. A ready result can also have empty item lists for meals without credible mains. Clients should render the full menu when highlights are not ready. `hall.status` still determines menu freshness and availability. A stale menu may have ready highlights matching its saved contents; that does not make the menu freshly verified.
+### IDs
+
+`id` values such as `m1:s0:i2` mean meal 1, station 0, item 2. They are **positions within one menu version, not permanent dish IDs**. If the school edits the menu, the same dish can get a different ID, and the old highlights are withdrawn (status becomes `pending`) until new ones are generated. Use IDs only to cross-reference the same response, never to store favorites or track a dish across days. `menuVersion` identifies the exact content the picks were made for.
+
+## What an app should render
+
+- Show `groups[].title` as the highlight label, in the order given.
+- For `variants`, show the choices from `sourceItems`, such as "beef bulgogi · dak chicken bulgogi". Take dietary badges and allergens from each source item, never from the group.
+- Link a highlight to its row in the full menu with `mealIndex` and the source `id`. When displaying a source in the menu context, prefer `sourceItems[].station`.
+- Show nothing extra for statuses other than `ready`. Always keep the full menu available, since highlights are a shortcut, not a filter.
+- Do not label highlights as "recommended by chefs" or "healthy". They are model-picked main dishes from the published menu.
 
 ```js
 const url = new URL('/v1/menus', apiBase);
-url.searchParams.set('highlights', String(settings.showHighlights));
-const response = await fetch(url);
-const data = await response.json();
+if (!settings.showHighlights) url.searchParams.set('highlights', 'false');
+const data = await (await fetch(url)).json();
 if (!Array.isArray(data.halls)) throw new Error(data.error?.message ?? 'Menu request failed');
 for (const hall of data.halls) {
-  // Keep handling hall.status, including stale and unavailable.
-  const featuredMeals = hall.highlights?.status === 'ready'
-    ? hall.highlights.meals
-    : [];
-  renderHall(hall, featuredMeals);
+  const featured = hall.highlights?.status === 'ready' ? hall.highlights.meals : [];
+  renderHall(hall, featured); // Keep handling hall.status, including stale and unavailable.
 }
 ```
 
-Opt-out controls the response for that request. It does not stop shared background generation. Operators can stop generation and serving with `HIGHLIGHTS_ENABLED="false"`. Existing edge/browser responses can remain cached for up to 60 seconds, plus KV propagation time for changed records.
+## Validation guarantees
 
-## Persistence and retries
+The server validates every model response, and re-validates every saved record each time it is served. Anything that fails is never shown as `ready`.
 
-The menu snapshot stays at `snapshot:v1`; optional results live at `highlights:v1`. Enabled requests for today make one additional KV read for the entire combined response. Future-date requests skip that read. Opt-out keeps the original single-read path. A highlights storage failure does not cause a menu error.
+- Every base meal appears exactly once. Empty services have no groups.
+- Each source belongs to that meal. IDs from another meal and invented IDs are rejected.
+- No source appears in more than one group. A meal has at most five groups, and a group has one to four sources.
+- Exact repeated rows collapse into one offering. Two singles collapse when their full source names match after normalizing case, punctuation and accents.
+- Single titles always come from the menu. The model cannot rename a dish.
+- Combined titles:
+  - must be plain text (no markup, URLs or control characters);
+  - must use only letters, digits, spaces and `' & , / ( ) -`;
+  - must take every word from every source name, apart from connectors such as "or" and "with" and the words that tell variants apart (proteins such as chicken, beef or tofu, plus vegetable, cheese, egg, and cooking styles such as grilled or fried). Those may come from just one source. So "Pork or tofu banh mi sandwich" passes. "Peanut-free chicken or beef satay", "Keto chicken or beef bowl" and "Vegan or chicken pho" are rejected when only one source says so;
+  - must include a dish word shared by every source, so "Beef bulgogi or orange tofu" is rejected.
 
-A SHA-256 digest covers hall, date, ordered meal/item content, model, prompt version, and the actual hall-specific system prompt. Last-checked timestamps and meal hours do not affect selection. Changed food, labels, or ordering invalidate old selections immediately when that menu snapshot is served. The API never combines a new menu with old selections. This also handles KV keys arriving at different times.
+If a combined title breaks these rules, the group is not dropped and the response is not rejected. Each of its sources is shown as its own `single`, titled from its menu name, still within the five-offering cap. Structural problems (wrong meal, unknown ID, duplicate ownership, malformed JSON) reject the whole response, which is then retried.
 
-The collector stores attempts and results durably before publishing to KV. A failed publish can retry without repeating inference. A crash after Groq accepts a request but before the result is saved can cause a repeat call. Exactly-once inference is not guaranteed.
+These rules are conservative lexical checks. They prevent invented dishes and claims. They do not prove that a pick is a good one.
 
-Each distinct hall-day version gets up to three reserved outbound attempts. Completed and failed versions are retained for that day, so a source changing A to B and back to A reuses A instead of resetting its attempts. Fresh halls get a first attempt before retries. HTTP 429 and 5xx are retryable; other Groq HTTP errors stop that version. Retry-After starts when the error arrives and pauses all halls, because provider quotas are shared. That cooldown survives California midnight. The collector caps reserved outbound attempts at 21 across all halls per California service day, including menu revisions and retries. Local oversized-input rejection consumes no request allowance. Reservations happen before network I/O, so a crash can consume allowance without sending a request. Exhausted versions receive an unavailable status instead of remaining pending. This limits calls, not tokens or spending. Configure provider account limits separately and inspect token usage logs.
+## Freshness and caching
 
-## Setup
+- Highlights cover **today only** (America/Los_Angeles). Future dates are always `not_applicable`.
+- The hourly collector refreshes menus, then schedules generation for halls whose menu content changed. The first picks of the day usually arrive within about ten minutes of the first hourly collection. Halls are generated one at a time, at least 65 seconds apart.
+- A content hash covers the hall, date, every meal, station and item field, the model, the prompt version, and the prompt text. Any change to food, labels or ordering hides old picks immediately. Freshness timestamps and meal hours do not count as changes.
+- Responses are edge-cached for up to 60 seconds, so a newly ready result can take that long to appear.
 
-Store `GROQ_API_KEY` as a Worker secret through Wrangler or the Cloudflare dashboard. Do not put it in an app or committed configuration. For local development, use an ignored `.dev.vars` file. The secret's presence enables generation unless `HIGHLIGHTS_ENABLED` is `false`.
+## Operating it
 
-Deploy the code after setting up the secret. The next hourly collection schedules generation. Until results arrive, apps see `pending`. Without a secret, they see `disabled`. No public request starts generation or permits a caller to force regeneration.
+**Setup.** Store the Groq key as a Worker secret: `npx wrangler secret put GROQ_API_KEY`. Never put it in an app or in committed config. For local development, put `GROQ_API_KEY=...` in the gitignored `.dev.vars`. A configured key enables highlights. Setting the variable `HIGHLIGHTS_ENABLED` to `"false"` stops both generation and serving: every hall then reports `disabled`. No public request can start or force generation.
 
-## Initial limits and evaluation
+**Local run.**
 
-See [the refinement report](highlight-refinement.md) and [actual tested picks](highlight-selections.md) for the October 3 prompt-version-5 loop. Known non-main errors improved, while some ranking preferences and occasional invalid references still require evaluation and bounded retries.
+```sh
+npm run dev                                  # wrangler dev --test-scheduled
+curl 'http://localhost:8787/__scheduled'     # collect menus and schedule generation
+curl 'http://localhost:8787/v1/menus/collins'
+```
 
-This version generates only today's menus in California time. Future dates remain fully available as menus with `not_applicable` highlights. Seven requests is a baseline for seven available, unchanged hall-days, not a promise when menus change or retries occur.
+**How generation runs.** The existing `MenuCollector` Durable Object runs generation from its alarm, after the hourly snapshot is saved. No new Cloudflare resource is needed.
 
-Requests have a 45-second timeout, a 24,000-byte menu input guard, and a 2,000-token completion allowance including reasoning. The byte guard is not a tokenizer and does not guarantee fitting an account's tokens-per-minute limit. Oversized hall-days currently report unavailable highlights; automatic splitting by meal is a follow-up. Test actual menus before choosing that threshold or increasing completion limits. Groq can also reject smaller inputs based on current quota usage.
+- Each alarm sends at most one Groq request, then schedules the next.
+- Attempts are recorded in Durable Object storage before the request goes out.
+- Results are written to the `highlights:v1` KV key.
+- A failed KV write is retried without calling Groq again.
+- A crash after Groq accepts a request but before the result is saved can cause one repeat call, so this is bounded, not exactly-once.
 
-Log events report hall/date, attempt failures, and successful prompt/completion/total token usage. They exclude credentials, raw provider error bodies, and reasoning text.
+**Budgets.**
 
-Before enabling for users, evaluate 30-50 real hall-day menus for mains versus sides, variety, plant-based coverage, repeats, and incomplete services. Compare combined prompts with per-meal prompts on the same menus if quality is inconsistent. Deterministic mocked tests verify the integration; they do not establish selection quality or real token consumption.
-
-References checked September 29, 2026: [GPT-OSS 120B](https://console.groq.com/docs/model/openai/gpt-oss-120b), [strict structured outputs](https://console.groq.com/docs/structured-outputs), [Groq rate limits](https://console.groq.com/docs/rate-limits), [Durable Object alarms](https://developers.cloudflare.com/durable-objects/api/alarms/).
-
-
-## Audited call counts
-
-| Situation | Additional Groq calls |
+| Situation | Groq calls |
 | --- | --- |
-| Seven available halls, first generation today | Seven, one complete hall-day per request |
-| Repeated hourly checks with unchanged food | Zero |
-| Any number of app/API requests | Zero |
-| One hall's food changes to a new version | Normally one |
-| Source reverts to an already completed version today | Zero |
-| Tomorrow through six days ahead | Zero in this implementation |
-| Retryable error or incomplete/invalid response | Up to three total reserved attempts for that version |
-| Closed, unavailable, or stale menu awaiting verification | Zero new generation calls |
-| Missing secret or operator kill switch | Zero |
+| Seven open halls, first run of the day | 7 (one per hall-day, all meals in one request) |
+| Hourly checks with unchanged food | 0 |
+| Any number of public API requests | 0 |
+| One hall's menu changes | Normally 1 |
+| Menu reverts to an already generated version the same day | 0 |
+| Retryable failure (429, 5xx, timeout, malformed or invalid output, `json_validate_failed`) | Up to 3 in total for that menu version |
+| Global ceiling | 21 reserved attempts per California day |
 
-The global ceiling is 21 reserved attempts per California day, not 21 per hall. An individual hall can exceed one call if its menu changes repeatedly. A literal one-call-per-day policy would prevent corrections after food changes; this implementation deliberately reuses results by menu content instead.
+`Retry-After` pauses all halls, because Groq quotas are per account. The pause carries across midnight. Other 4xx errors stop that version immediately; 413 reports `input_too_large`. Requests use low reasoning effort, a 45-second timeout, 2,000 completion tokens (including reasoning), and a 24,000-byte input guard. That guard is not a token count. A typical day uses roughly 25–35k tokens across all halls. Set spending and rate limits in the Groq console as well; the call ceiling does not limit tokens.
 
-If highlights later cover the full seven-day window, initial generation could require up to 49 hall-day requests. With caching, subsequent work would cover new dates and changed menus, rather than repeating all 49 requests every day. That expansion would require revisiting the current 21-attempt budget and today-only storage policy.
+**Logs.** `highlights_generated` records hall, date and token usage. `highlights_failed` records hall, attempt, whether a retry is planned, and a short reason. Logs never include the key, provider error bodies, or reasoning text.
 
-See [the audit report](menu-highlights-audit.md) for findings, fixes, live payload measurements, and verification limits.
+**Changing the prompt.** The prompt, schema and validation live in `src/highlight-selection.ts`. Bump `PROMPT_VERSION` in `src/highlights.ts` whenever any of them, or the saved format, changes. The bump invalidates all saved picks. To review a day's picks against the live menus with the shipped pipeline, run `npm run highlights:audit`. It uses `.dev.vars` and costs up to one Groq call per hall.
 
-
-## Live validation
-
-The October 2 live run completed all six available halls in six Groq calls, totaling 25,195 tokens. It exposed and fixed omission of empty services by requiring every meal ID as a key in the strict output schema. The public response shape is unchanged. See [live test results](menu-highlights-live-test.md) for usage, API checks, and selection-quality caveats.
+References: [GPT-OSS 120B](https://console.groq.com/docs/model/openai/gpt-oss-120b), [structured outputs](https://console.groq.com/docs/structured-outputs), [rate limits](https://console.groq.com/docs/rate-limits), [Durable Object alarms](https://developers.cloudflare.com/durable-objects/api/alarms/).

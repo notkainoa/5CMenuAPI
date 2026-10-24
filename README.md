@@ -53,11 +53,25 @@ The combined endpoint wraps those same objects in `{ "date": "2026-09-06", "time
 
 ### Menu highlights
 
-When configured with a Groq key, the collector generates today's highlights using `openai/gpt-oss-120b` with low reasoning effort. One request covers all meals for a hall. Generation runs in the background, and saved selections are reused until the menu content changes. Public requests never call Groq.
+For today's menus, each hall response includes a `highlights` object: up to five highlighted offerings per meal, chosen in the background by `openai/gpt-oss-120b` on Groq. Public requests never call Groq. They read saved picks, which stay valid until that hall's menu content changes.
 
-Each hall includes a `highlights` object with `status` and `meals`. On `ready`, each meal contains `mealIndex`, `name`, selected `items` with original school-provided data plus `id` and `station`, and additive `groups` for short combined titles and original source choices. Existing clients can render the original anchor items. Other statuses are `pending`, `unavailable`, `disabled`, and `not_applicable`; these have an empty highlights meal array. Base menu status remains independent. Use `?highlights=false` for the original response shape.
+```json
+"highlights": {
+  "status": "ready",
+  "meals": [{
+    "mealIndex": 1, "name": "Dinner",
+    "items": [{ "id": "m1:s1:i1", "station": "global", "name": "beef bulgogi" }],
+    "groups": [{
+      "title": "Chicken or beef bulgogi", "kind": "variants", "sourceIds": ["m1:s1:i1", "m1:s1:i2"],
+      "sourceItems": [{ "id": "m1:s1:i1", "station": "global", "name": "beef bulgogi" }, { "id": "m1:s1:i2", "station": "global", "name": "dak chicken bulgogi" }]
+    }]
+  }]
+}
+```
 
-See [the highlights guide](docs/menu-highlights.md) for the JSON contract, app example, architecture, setup, and current limits. Highlights select up to five offerings per meal. The [grouping experiment](docs/highlight-grouping.md) records multi-model comparisons and remaining food-selection failures. The local grouped candidate has not been deployed or established better overall selection quality.
+Possible statuses are `ready`, `pending`, `unavailable` (with a `reason`), `disabled` and `not_applicable`. Every status except `ready` has `meals: []`. Show `groups[].title` and take dietary data from each entry in `sourceItems`; groups never carry aggregate dietary flags. Item IDs are positions within one menu version, not permanent dish IDs. Use `?highlights=false` to get the original response shape and skip the extra storage read.
+
+See [the highlights guide](docs/menu-highlights.md) for the full contract, rendering advice, setup and budgets. See [history and known limits](docs/highlights-history.md) for how the picks were tuned and where they are still weak.
 
 ### Availability and timestamps
 
@@ -122,9 +136,11 @@ curl 'http://localhost:8787/__scheduled'
 curl 'http://localhost:8787/v1/menus'
 ```
 
+To generate highlights locally, put `GROQ_API_KEY=...` in a gitignored `.dev.vars` file before starting `npm run dev`. After the scheduled run, halls fill in roughly one per minute. Without a key, every hall reports `disabled` highlights.
+
 The scheduled development hook is supplied by Wrangler with `--test-scheduled`. It is not a public refresh route in the deployed API. The collector skips a second completed run within the same UTC hour.
 
-`npm run sources` checks live sites and prints dates, item counts, requests, and response sizes. It exits nonzero if any requested hall/date is unavailable. This is separate from deterministic tests: a school may not publish a menu. `npm run benchmark` downloads inputs once, replays them from memory, and measures local processing. Its numbers are not Cloudflare billing measurements.
+`npm run sources` checks live sites and prints dates, item counts, requests, and response sizes. It exits nonzero if any requested hall/date is unavailable. This is separate from deterministic tests: a school may not publish a menu. `npm run benchmark` downloads inputs once, replays them from memory, and measures local processing. Its numbers are not Cloudflare billing measurements. `npm run highlights:audit` captures today's menus and generates one set of picks per hall with the shipped pipeline. It needs a Groq key and prints each pick with its station for manual review.
 
 ## Deploy to Cloudflare Free
 
@@ -133,8 +149,9 @@ The current deployment uses the KV namespace configured in `wrangler.jsonc`. To 
 1. Run `npx wrangler login` for your Cloudflare account.
 2. Run `npx wrangler kv namespace create MENUS`.
 3. Replace the existing KV namespace `id` in `wrangler.jsonc` with the resulting namespace ID.
-4. Run `npm run deploy`.
-5. Allow the hourly Cron Trigger to run, then inspect `/v1/menus` and the Worker logs. Cron configuration can take time to propagate. Until collection succeeds, the API reports unavailable.
+4. Optionally, run `npx wrangler secret put GROQ_API_KEY` to enable highlights. Without the secret, the API serves menus with `disabled` highlights.
+5. Run `npm run deploy`.
+6. Allow the hourly Cron Trigger to run, then inspect `/v1/menus` and the Worker logs. Cron configuration can take time to propagate. Until collection succeeds, the API reports unavailable.
 
 The configuration creates a **SQLite-backed** `MenuCollector` Durable Object, as required by the free tier, and one hourly Cron Trigger. Its binding is private. The Worker only dispatches collection and receives a tiny summary; parsing runs inside the Durable Object. Do not add another writer for the same snapshot.
 
