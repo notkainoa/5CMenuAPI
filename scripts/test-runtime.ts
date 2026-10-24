@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { setTimeout as delay } from 'node:timers/promises';
 import { build } from 'esbuild';
 import { Miniflare, Response as RuntimeResponse, convertV4MiniflareOptions } from 'miniflare';
 import { californiaDate, supportedDates } from '../src/dates';
@@ -156,3 +157,85 @@ try {
   assert.equal(sourceCalls, expectedSourceCalls);
   console.log('Collector runtime passed: cron → private SQLite Durable Object → mocked live-format providers → KV → public API; duplicate triggers coalesced; edge cache verified.');
 } finally { await collectorRuntime.dispose(); }
+
+// Seed a completed collection so the real refresh method schedules a real alarm.
+// The test-only route never invokes the alarm handler directly.
+const highlightBundle = await build({
+  stdin: { contents: `
+    import worker, { MenuCollector } from './src/index';
+    export class TestCollector extends MenuCollector {
+      async tick() {
+        const now = new Date();
+        await this.ctx.storage.put('last-run', {
+          hour: now.toISOString().slice(0, 13), summary: { refreshedAt: now.toISOString(), failedDates: 0 },
+        });
+        await this.refresh();
+        return this.ctx.storage.getAlarm();
+      }
+    }
+    export default {
+      async fetch(request, env, ctx) {
+        if (new URL(request.url).pathname === '/test/tick') {
+          return Response.json(await env.COLLECTOR.getByName('highlights-test').tick());
+        }
+        return worker.fetch(request, env, ctx);
+      }
+    };
+  `, resolveDir: process.cwd(), loader: 'ts' },
+  bundle: true, format: 'esm', platform: 'browser', target: 'es2022', write: false, external: ['cloudflare:workers'],
+});
+let groqCalls = 0;
+const highlightRuntime = new Miniflare(convertV4MiniflareOptions({
+  modules: true, script: highlightBundle.outputFiles[0].text, compatibilityDate: '2026-09-06',
+  kvNamespaces: ['MENUS'], bindings: { GROQ_API_KEY: 'test-secret' },
+  durableObjects: { COLLECTOR: { className: 'TestCollector', useSQLite: true } },
+  outboundService: async request => {
+    assert.equal(new URL(request.url).hostname, 'api.groq.com');
+    assert.equal(request.headers.get('authorization'), 'Bearer test-secret');
+    const body = await request.json() as { model: string };
+    assert.equal(body.model, 'openai/gpt-oss-120b');
+    groqCalls++;
+    return new RuntimeResponse(JSON.stringify({ choices: [{ finish_reason: 'stop', message: {
+      content: JSON.stringify({ meals: { m0: [{ title: '', sourceIds: ['0'] }] } }),
+    } }] }), { headers: { 'content-type': 'application/json' } });
+  },
+}));
+try {
+  const now = new Date();
+  const date = californiaDate(now);
+  const kv = await highlightRuntime.getKVNamespace('MENUS');
+  const snapshot: Snapshot = { version: 1, refreshedAt: now.toISOString(), sources: {}, menus: {
+    [date]: { hoch: { hall: 'hoch', date, status: 'ok', sourceUrl: 'https://example.test',
+      lastCheckedAt: now.toISOString(), lastSuccessfulCheckAt: now.toISOString(), menuUpdatedAt: now.toISOString(),
+      meals: [{ name: 'Lunch', stations: [{ name: 'Main', items: [{ name: 'Curry', vegan: true }] }] }],
+    } },
+  } };
+  await kv.put(SNAPSHOT_KEY, JSON.stringify(snapshot));
+  const tick = await highlightRuntime.dispatchFetch('https://menu.test/test/tick');
+  assert.equal(tick.status, 200);
+  assert.ok(Number(await tick.json()) > now.getTime());
+  const deadline = Date.now() + 10_000;
+  let saved = false;
+  while (Date.now() < deadline) {
+    const raw = await kv.get('highlights:v1');
+    if (raw && JSON.parse(raw).hoch?.status === 'ready') { saved = true; break; }
+    await delay(50);
+  }
+  assert.ok(saved, 'The scheduled alarm must run and publish its result');
+  assert.equal(groqCalls, 1);
+  const response = await highlightRuntime.dispatchFetch('https://menu.test/v1/menus/hoch');
+  const output = await response.json() as { highlights: { status: string; meals: { items: { name: string; vegan: boolean }[]; groups: { title: string; kind: string; sourceItems: { name: string; vegan: boolean }[] }[] }[] } };
+  assert.equal(output.highlights.status, 'ready');
+  assert.equal(output.highlights.meals[0].items[0].name, 'Curry');
+  assert.equal(output.highlights.meals[0].items[0].vegan, true);
+  assert.equal(output.highlights.meals[0].groups[0].title, 'Curry');
+  assert.equal(output.highlights.meals[0].groups[0].sourceItems[0].vegan, true);
+  assert.equal(output.highlights.meals[0].groups[0].kind, 'single');
+  const optOut = await highlightRuntime.dispatchFetch('https://menu.test/v1/menus/hoch?highlights=false');
+  assert.ok(!('highlights' in (await optOut.json() as object)));
+  assert.notEqual(optOut.headers.get('etag'), response.headers.get('etag'));
+  const repeat = await highlightRuntime.dispatchFetch('https://menu.test/test/tick');
+  assert.equal(repeat.status, 200);
+  assert.equal(groqCalls, 1);
+  console.log('Highlights runtime passed: refresh → actual scheduled SQLite alarm → mocked Groq → KV → original item data; opt-out cache isolation; saved results reused.');
+} finally { await highlightRuntime.dispose(); }

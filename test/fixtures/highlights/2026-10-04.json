@@ -1,0 +1,3594 @@
+{
+  "date": "2026-10-04",
+  "halls": [
+    {
+      "hall": "hoch",
+      "date": "2026-10-04",
+      "status": "ok",
+      "sourceUrl": "https://hmc.sodexomyway.com/en-us/locations/hoch-shanahan-dining-commons",
+      "lastCheckedAt": "2026-10-04T19:36:28.370Z",
+      "lastSuccessfulCheckAt": "2026-10-04T19:36:28.370Z",
+      "menuUpdatedAt": "2026-10-04T19:36:28.370Z",
+      "meals": [
+        {
+          "name": "BRUNCH",
+          "stations": [
+            {
+              "name": "BAKERY",
+              "items": [
+                {
+                  "name": "Plain Bagel",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Assorted Donuts",
+                  "description": "Honey glazed yeast donut holes",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "CHEF CORNER",
+              "items": [
+                {
+                  "name": "Crispy Chicken Tender, Honey Mustard",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Garlic Roasted Green Beans",
+                  "description": "Oven roasted green beans with garlic, kosher salt and black pepper",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Veggie Chick'n Nuggets",
+                  "description": "Plant based chick'n nuggets",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Roasted Potato Wedges",
+                  "description": "Oven-roasted potato wedges seasoned with garlic and herbs",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Belgian Waffle",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Chicken Nuggets",
+                  "description": "Crispy chicken nuggets",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "CREATIONS",
+              "items": [
+                {
+                  "name": "Allergen Free Chicken Pho Broth",
+                  "description": "Allergen free chicken broth seasoned with ginger, garlic, clove, and star anise",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Vegetable Pho Broth",
+                  "description": "Charred onion vegetable pho broth flavored with cloves, anise and cinnamon",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "DELI BAR HMC",
+              "items": [
+                {
+                  "name": "Roast Beef",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "EXHIBITION",
+              "items": [
+                {
+                  "name": "Hash Brown Patty",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Made To Order Filled Omelet",
+                  "description": "3 egg omelet with your choice of fillings",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Flour Tortilla",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "GRILL",
+              "items": [
+                {
+                  "name": "Cage Free Egg Whites",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Texas French Toast",
+                  "description": "Griddled thick sliced bread dipped in egg custard, finished with powdered sugar",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Hard Boiled Egg",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Hash Brown Patty",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Vegetarian Breakfast Sausage Patty",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Sausage Gravy & Biscuit",
+                  "description": "Homemade sausage gravy served over a split buttermilk biscuit",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Scrambled Eggs With Cheddar",
+                  "description": "Eggs scrambled with mild cheddar cheese",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Scrambled Tofu",
+                  "description": "Tofu scrambled with scallions, garlic, jalapeno peppers and seasoned with paprika, oregano and lime juice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Scrambled Vegan Egg Substitute",
+                  "description": "An alternative, light and fluffy vegan scrambled eggs",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Pork Sausage Link",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Bacon",
+                  "description": "Crispy bacon",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Scrambled Eggs",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Oatmeal",
+                  "description": "A hearty bowl of oatmeal",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Chocolate Chip Pancakes",
+                  "description": "Griddled buttermilk pancakes with chocolate chips",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "GROWN PLANT",
+              "items": [
+                {
+                  "name": "Brown Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Basmati Rice",
+                  "description": "Steamed basmati rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Spinach And Feta Cheese Roll",
+                  "description": "Baked puff pastry roll stuffed with spinach and feta",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Jerk Tofu",
+                  "description": "Tofu marinated, seasoned and pan seared",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Baja Black Beans",
+                  "description": "Black beans simmered with yellow onion, garlic, cumin, black pepper and kosher salt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "HMC SPECIAL SALAD",
+              "items": [
+                {
+                  "name": "Jicama & Red Cabbage Slaw",
+                  "description": "Crunchy jicama and red cabbage tossed with lime juice and jalapeno",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "MISCELLANEOUS",
+              "items": [
+                {
+                  "name": "Have A Nice Day",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "SALAD BAR YOGURT",
+              "items": [
+                {
+                  "name": "Chobani Nonfat Greek Strawberry Yogurt",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Red And Green Grapes",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Chobani Nonfat Greek Vanilla Yogurt",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Watermelon Wedge",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Plain Vegan Yogurt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Fresh Whole Strawberries",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "SIMPLE SERVINGS",
+              "items": [
+                {
+                  "name": "Balsamic Grilled Chicken",
+                  "description": "Grilled boneless chicken breast marinated in balsamic vinaigrette",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Jasmine Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Brown Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Baja Black Beans",
+                  "description": "Black beans simmered with yellow onion, garlic, cumin, black pepper and kosher salt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Roasted Vegetables",
+                  "description": "Oven roasted broccoli, carrots and julienne red peppers",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Green Lentils",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "SOUP BAR",
+              "items": [
+                {
+                  "name": "Beef Mushroom Barley Soup",
+                  "description": "Tender beef, pearl barley, beef and chicken broths, onions, carrots, celery, tomatoes, button mushrooms and thyme",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Cream Of Tomato Soup",
+                  "description": "Creamy tomato soup with diced tomatoes",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "SPECIAL BAR SALAD- S",
+              "items": [
+                {
+                  "name": "Chopped Romaine",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Baby Spinach",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Herbed Salad Greens",
+                  "description": "Iceberg, romaine, kale with fresh mint and parsley",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            }
+          ],
+          "period": "brunch"
+        },
+        {
+          "name": "DINNER",
+          "stations": [
+            {
+              "name": "BAKERY",
+              "items": [
+                {
+                  "name": "Dutch Apple Pie",
+                  "description": "Traditional dutch apple pie with crumb topping",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Oatmeal Raisin Cookie",
+                  "description": "Oven fresh soft oatmeal cookie with plump raisins",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Tropical Rice Pudding",
+                  "description": "Simple yet elegant rice pudding spiced with toasted coconut, lemon, and cardamom",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Carrot Cake",
+                  "description": "White cake mixed with carrots, raisins & walnuts topped with cream cheese icing and cinnamon",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Chocolate Chip Cookie",
+                  "description": "Just baked chewy cookie with chocolate chips galore",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "CHEF CORNER",
+              "items": [
+                {
+                  "name": "Mango Pico De Gallo",
+                  "description": "Fresh mango tossed with lemon juice, poblano peppers, golden raisins, dried apricots and fresh cilantro",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Vegetable Fried Rice",
+                  "description": "Stir fried egg, broccoli, mushrooms, peas, carrot, corn and onion, Tossed with rice and soy sauce",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Asian Vegetables",
+                  "description": "Fresh bok choy, broccoli, red peppers, napa cabbage and carrots",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "White Dinner Roll",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Grilled Salmon",
+                  "description": "Grilled salmon fillet seasoned with salt and pepper",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "CREATIONS",
+              "items": [
+                {
+                  "name": "Baja Black Beans",
+                  "description": "Black beans simmered with yellow onion, garlic, cumin, black pepper and kosher salt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Cilantro Lime Rice",
+                  "description": "Rice simmered with onions, garlic, lime juice, cilantro and vegetable stock",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Mexican White Rice",
+                  "description": "Rice simmered with onions, peppers, tomatoes, vegetable broth and fresh cilantro",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Hmc Burrito Bar Beef Barbacoa",
+                  "description": "Tender chunks of beef braised in a savory sauce",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Chicken Machaca Burrito",
+                  "description": "Shredded chipotle chicken with Mexican rice, black beans, salsa and cotija cheese wrapped in a flour tortilla",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Carne Asada",
+                  "description": "Chargrilled flank steak rubbed with cumin, fresh lime juice, onions, garlic, and cilantro",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Low Sodium Pinto Beans",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "DELI BAR HMC",
+              "items": [
+                {
+                  "name": "Roast Beef",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "GRILL",
+              "items": [
+                {
+                  "name": "Sesame Ginger Green Beans",
+                  "description": "Green beans saut\u00e9ed with ginger, garlic and sesame",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Vegetable Egg Roll",
+                  "description": "Crispy fried vegetable eggroll",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Jasmine Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Korean Bbq Chicken",
+                  "description": "Grilled chicken thighs marinated in a spicy soy and ginger sauce",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "GROWN PLANT",
+              "items": [
+                {
+                  "name": "Brown Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Baja Black Beans",
+                  "description": "Black beans simmered with yellow onion, garlic, cumin, black pepper and kosher salt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Spinach And Feta Cheese Roll",
+                  "description": "Baked puff pastry roll stuffed with spinach and feta",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Jasmine Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Basmati Rice",
+                  "description": "Steamed basmati rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Eggplant Lentil Moussaka",
+                  "description": "Lentils, noodles and tomatoes topped with egg custard and seasoned with oregano, cinnamon and garlic",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "HMC SPECIAL SALAD",
+              "items": [
+                {
+                  "name": "Jicama & Red Cabbage Slaw",
+                  "description": "Crunchy jicama and red cabbage tossed with lime juice and jalapeno",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "MISCELLANEOUS",
+              "items": [
+                {
+                  "name": "Have A Nice Day",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "OVEN",
+              "items": [
+                {
+                  "name": "Garlic Bread",
+                  "description": "French baguette baked with garlic and fresh parsley",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Angel Hair Noodles",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Chicken Breast Piccata",
+                  "description": "Lightly dredged chicken breast saut\u00e9ed with tangy capers & fresh parsley in a lemon butter sauce",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                },
+                {
+                  "name": "Roasted Vegetables",
+                  "description": "Oven roasted broccoli, carrots and julienne red peppers",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            },
+            {
+              "name": "SALAD BAR YOGURT",
+              "items": [
+                {
+                  "name": "Chobani Nonfat Greek Vanilla Yogurt",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Red And Green Grapes",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Fresh Whole Strawberries",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Watermelon Wedge",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Plain Vegan Yogurt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Chobani Nonfat Greek Strawberry Yogurt",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "SIMPLE SERVINGS",
+              "items": [
+                {
+                  "name": "Steamed Jasmine Rice",
+                  "description": "Aromatic white rice from Thailand",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Baja Black Beans",
+                  "description": "Black beans simmered with yellow onion, garlic, cumin, black pepper and kosher salt",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Brown Rice",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Herbed Roasted Potato Wedges",
+                  "description": "Roasted herb, garlic seasoned potato wedges with fresh thyme and  jalapeno peppers",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Roasted Vegetables",
+                  "description": "Oven roasted broccoli, carrots and julienne red peppers",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Roast Beef",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "SOUP BAR",
+              "items": [
+                {
+                  "name": "Cream Of Tomato Soup",
+                  "description": "Creamy tomato soup with diced tomatoes",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Gingered Carrot Soup",
+                  "description": "Fresh carrots, onions, garlic, vegetable broth, ginger, cinnamon and cream",
+                  "vegan": false,
+                  "vegetarian": true,
+                  "plantBased": false
+                },
+                {
+                  "name": "Beef Mushroom Barley Soup",
+                  "description": "Tender beef, pearl barley, beef and chicken broths, onions, carrots, celery, tomatoes, button mushrooms and thyme",
+                  "vegan": false,
+                  "vegetarian": false,
+                  "plantBased": false
+                }
+              ]
+            },
+            {
+              "name": "SPECIAL BAR SALAD- S",
+              "items": [
+                {
+                  "name": "Baby Spinach",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Herbed Salad Greens",
+                  "description": "Iceberg, romaine, kale with fresh mint and parsley",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                },
+                {
+                  "name": "Chopped Romaine",
+                  "vegan": true,
+                  "vegetarian": true,
+                  "plantBased": true
+                }
+              ]
+            }
+          ],
+          "period": "dinner"
+        }
+      ]
+    },
+    {
+      "hall": "malott",
+      "date": "2026-10-04",
+      "status": "ok",
+      "sourceUrl": "https://scripps.cafebonappetit.com/",
+      "lastCheckedAt": "2026-10-04T19:37:34.863Z",
+      "lastSuccessfulCheckAt": "2026-10-04T19:37:34.863Z",
+      "menuUpdatedAt": "2026-10-04T19:37:34.863Z",
+      "meals": [
+        {
+          "name": "Brunch",
+          "stations": [
+            {
+              "name": "global",
+              "items": [
+                {
+                  "name": "scrambled eggs",
+                  "description": "with cage-free egg",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted sweet potatoes",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "chicken apple sausage",
+                  "featured": true
+                },
+                {
+                  "name": "plant-based sausage patty",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "tofu and broccoli scramble",
+                  "description": "with onion and nutritional yeast",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "herb roasted beef sirloin",
+                  "description": "with oregano and garlic",
+                  "featured": true
+                },
+                {
+                  "name": "chilaquiles rojo",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "refried black beans",
+                  "description": "with onion, garlic, and chili peppers",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "breakfast potatoes with peppers and onions",
+                  "description": "with bell pepper and butter",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted vegetables",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "herbivore",
+              "items": [
+                {
+                  "name": "coconut chia pudding",
+                  "description": "with coconut milk, chia seeds, and agave nectar",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "oasis",
+              "items": [
+                {
+                  "name": "made without the top-9 food allergens + gluten-containing ingredients",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "sweets",
+              "items": [
+                {
+                  "name": "apple danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "blueberry muffin",
+                  "vegetarian": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "Lunch Grill",
+              "items": [
+                {
+                  "name": "deluxe bagel bar",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "Soup",
+              "items": [
+                {
+                  "name": "vegan tomato basil soup",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "Breakfast Grill",
+              "items": [
+                {
+                  "name": "Cheerios",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "low fat granola",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "Raisin Bran",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "whole grain french toast",
+                  "description": "with whole grain bread, cage-free egg white, and skim milk",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "malted waffles",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "buttermilk pancakes",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "texas french toast",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "french toast",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "hash browns",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "potatoes o'brien",
+                  "description": "with bell pepper and onion",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "tater tots",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "grilled ham",
+                  "featured": false
+                },
+                {
+                  "name": "pork breakfast sausage links",
+                  "featured": false
+                },
+                {
+                  "name": "vegan breakfast sausage patty",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "teriyaki",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "hot breakfast cereal",
+              "items": [
+                {
+                  "name": "steel-cut oatmeal",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "old-fashioned oatmeal",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "cream of rice",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "cream of wheat",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "grits",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            }
+          ],
+          "period": "brunch",
+          "startTime": "10:00",
+          "endTime": "13:00"
+        },
+        {
+          "name": "Dinner",
+          "stations": [
+            {
+              "name": "global",
+              "items": [
+                {
+                  "name": "cheese ravioli",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "herbivore",
+              "items": [
+                {
+                  "name": "plant-based chicken strips",
+                  "vegetarian": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "oasis",
+              "items": [
+                {
+                  "name": "carnitas bowl",
+                  "featured": true
+                },
+                {
+                  "name": "roasted achiote chicken wings",
+                  "description": "with orange juice, achiote paste, garlic, and onion powder",
+                  "featured": true
+                },
+                {
+                  "name": "made without the top-9 food allergens + gluten-containing ingredients",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "ovens",
+              "items": [
+                {
+                  "name": "pepperoni pizza",
+                  "featured": true
+                },
+                {
+                  "name": "margherita pizza",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "cheese pizza",
+                  "vegetarian": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "sweets",
+              "items": [
+                {
+                  "name": "sugar cookie",
+                  "description": "with sugar cookie dough",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "oatmeal raisin cookie",
+                  "description": "with oatmeal raisin cookie dough",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "chocolate chip cookie",
+                  "description": "with chocolate chip cookie dough",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "sugar cookies",
+                  "description": "with sugar cookie dough",
+                  "vegetarian": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "PM Grill",
+              "items": [
+                {
+                  "name": "barbecue bacon cheeseburger on a brioche bun",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "Soup",
+              "items": [
+                {
+                  "name": "vegan tomato basil soup",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "Breakfast Grill",
+              "items": [
+                {
+                  "name": "pesto",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "teriyaki",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "wood and stone",
+              "items": [
+                {
+                  "name": "margarita pizza",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "baked chicken penne alfredo",
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "sides",
+              "items": [
+                {
+                  "name": "roasted cauliflower",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "grilled asparagus",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "roasted vegetables",
+                  "description": "with bell pepper, broccoli, and carrot",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "salad bar",
+              "items": [
+                {
+                  "name": "Self-serve"
+                }
+              ]
+            }
+          ],
+          "period": "dinner",
+          "startTime": "17:00",
+          "endTime": "19:00"
+        }
+      ]
+    },
+    {
+      "hall": "mcconnell",
+      "date": "2026-10-04",
+      "status": "ok",
+      "sourceUrl": "https://pitzer.cafebonappetit.com/",
+      "lastCheckedAt": "2026-10-04T19:38:41.629Z",
+      "lastSuccessfulCheckAt": "2026-10-04T19:38:41.629Z",
+      "menuUpdatedAt": "2026-10-04T19:38:41.629Z",
+      "meals": [
+        {
+          "name": "Brunch",
+          "stations": [
+            {
+              "name": "breakfast",
+              "items": [
+                {
+                  "name": "scrambled eggs",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "hard-boiled eggs",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "old-fashioned oatmeal",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "hot quinoa",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "creamy quinoa soy milk porridge",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "egg and cheese on a whole wheat English muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "egg and cheese croissant",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "egg and cheese on a white English muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "egg and cheese on a white bagel",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "bacon",
+                  "featured": false
+                },
+                {
+                  "name": "grilled ham",
+                  "featured": false
+                },
+                {
+                  "name": "pork breakfast sausage links",
+                  "featured": false
+                },
+                {
+                  "name": "turkey breakfast sausage links",
+                  "featured": false
+                },
+                {
+                  "name": "vegetarian breakfast sausage",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "waffle",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "blueberry pancakes",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "Texas French toast",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "chocolate chip pancakes",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "buttermilk pancakes",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "roasted sweet potatoes",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "baked apples",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "sauteed spinach",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "roasted butternut squash",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "roasted mushrooms",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "black beans",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "lentils",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "tofu scramble",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "sweet potato hash",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "sauteed spinach",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "hash browns",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "tater tots",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "global",
+              "items": [
+                {
+                  "name": "steamed rice",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "garbanzo beans",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "broccoli rabe",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "au gratin potatoes",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "impossible meat loaf",
+                  "description": "with bbq sauce",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "buttermilk fried chicken",
+                  "description": "with country gravy",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "comfort",
+              "items": [
+                {
+                  "name": "cage free scrambled eggs",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "cage free scrambled eggs and ham",
+                  "description": "with spinach and gruyere cheese",
+                  "featured": true
+                },
+                {
+                  "name": "just eggs scrambled",
+                  "description": "with broccoli, mushrooms, peppers and scallions",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "brioche french toast casserole",
+                  "description": "with banana, blueberries and maple butter",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "beef machaca burritos",
+                  "description": "with cage free eggs, onions, jalapenos and tomatoes",
+                  "featured": true
+                },
+                {
+                  "name": "applewood bacon",
+                  "featured": true
+                },
+                {
+                  "name": "impossible breakfast patties",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "potato hash browns",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "potato tater tots",
+                  "featured": true
+                },
+                {
+                  "name": "homemade salsa verde",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "grill",
+              "items": [
+                {
+                  "name": "build your own omelet burrito",
+                  "description": "tomatoes, onions, green onions, olives, mushrooms, jalape\u00f1os, broccoli, spinach, peppers, chicken, pork sausage, bacon, ham, tofu, cheese, salsa fresca; fresh made to order with cage free eggs, egg whites, vegan egg available upon request",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "hot cereal",
+              "items": [
+                {
+                  "name": "hot oatmeal",
+                  "description": "roasted apple, sauteed corn, saut\u00e9ed spinach, roasted butternut squash",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "almond overnight oats",
+                  "description": "roasted apple, sauteed corn, saut\u00e9ed spinach, roasted butternut squash",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "coconut chia pudding",
+                  "description": "with berry compote",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "ovens",
+              "items": [
+                {
+                  "name": "house-made scones",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "house-made blueberry scones",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "house-made strawberry scones",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "house-made oatmeal raisin scones",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apple cinnamon scone",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "blueberry lemon scone",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "brown sugar cinnamon scone",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "carrot cake scone",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "chocolate chunk scone",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cranberry orange scone",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "chocolate chip cookies",
+                  "featured": false
+                },
+                {
+                  "name": "M&M cookie",
+                  "featured": false
+                },
+                {
+                  "name": "oatmeal raisin cookie",
+                  "featured": false
+                },
+                {
+                  "name": "Rice Krispie treats bar",
+                  "featured": false
+                },
+                {
+                  "name": "double chocolate cookie",
+                  "featured": false
+                },
+                {
+                  "name": "blondie",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apricot oatmeal bars",
+                  "featured": false
+                },
+                {
+                  "name": "baked pumpkin bar",
+                  "featured": false
+                },
+                {
+                  "name": "carrot oatmeal raisin bar",
+                  "featured": false
+                },
+                {
+                  "name": "brownies",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "red velvet bars",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "raspberry bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "pecan bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apple crumble bars",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "lemon bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "coconut almond meltaway bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "sugar cookies",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apple Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apricot Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "blueberry Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cheese Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cherry Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cinnamon swirl Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "lemon Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "peach Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "raspberry Danish",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apple cinnamon muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "banana chip muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "banana walnut muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "blueberry crumb muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "blueberry muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cappuccino muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "carrot cheese muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cranberry orange muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "chocolate chip muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "lemon poppy almond muffin",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "raisin bran muffin",
+                  "vegetarian": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "sweets",
+              "items": [
+                {
+                  "name": "matcha almond scones",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "chocolate chip cookies",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "chocolate chip croissants",
+                  "featured": true
+                },
+                {
+                  "name": "blueberry scones",
+                  "featured": true
+                },
+                {
+                  "name": "cinnamon sugar donuts",
+                  "featured": true
+                },
+                {
+                  "name": "powder sugar donut holes",
+                  "featured": true
+                },
+                {
+                  "name": "dulce de leche apple danish",
+                  "featured": true
+                },
+                {
+                  "name": "cinnamon rolls",
+                  "description": "with cream cheese icing",
+                  "featured": true
+                },
+                {
+                  "name": "blueberry lime bars",
+                  "featured": true
+                },
+                {
+                  "name": "banana chocolate cake",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "stocks",
+              "items": [
+                {
+                  "name": "beef menudo",
+                  "featured": true
+                },
+                {
+                  "name": "miso tofu soup",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            }
+          ],
+          "period": "brunch",
+          "startTime": "10:30",
+          "endTime": "13:30"
+        },
+        {
+          "name": "Dinner",
+          "stations": [
+            {
+              "name": "chef's table",
+              "items": [
+                {
+                  "name": "italian pitzer sunday",
+                  "featured": true
+                },
+                {
+                  "name": "spaghetti pasta",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "fettuccini pasta",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "gluten free pasta",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "beef meatballs",
+                  "featured": true
+                },
+                {
+                  "name": "turkey meatballs",
+                  "featured": true
+                },
+                {
+                  "name": "impossible meatballs",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted broccoli,",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "marinara sauce",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "chipotle cream sauce",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "pesto sauce",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "garlic bread",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "crushed peppers",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "global",
+              "items": [
+                {
+                  "name": "korean burrito",
+                  "description": "green onions, onions, shredded carrots, cucumber banchan, mushrooms, ong choy water spinach",
+                  "featured": true
+                },
+                {
+                  "name": "beef bulgogi",
+                  "description": "green onions, onions, shredded carrots, cucumber banchan, mushrooms, ong choy water spinach",
+                  "featured": true
+                },
+                {
+                  "name": "dak chicken bulgogi",
+                  "description": "green onions, onions, shredded carrots, cucumber banchan, mushrooms, ong choy water spinach",
+                  "featured": true
+                },
+                {
+                  "name": "orange tofu",
+                  "description": "green onions, onions, shredded carrots, cucumber banchan, mushrooms, ong choy water spinach",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "steamed rice",
+                  "description": "green onions, onions, shredded carrots, cucumber banchan, mushrooms, ong choy water spinach",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "jap chae noodles",
+                  "description": "green onions, onions, shredded carrots, cucumber banchan, mushrooms, ong choy water spinach",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "fried egg",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "soy glaze",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "korean bbq sauce",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "gochujang aioli",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "comfort",
+              "items": [
+                {
+                  "name": "steamed rice",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted butternut squash",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "creamy macaroni and cheese",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted potatoes",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "stuffed tomatoes",
+                  "description": "with vegetables, tempeh, and cajun pepper sauce",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "smoked bbq brisket",
+                  "description": "with molase bbq sauce",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "grill",
+              "items": [
+                {
+                  "name": "grill slider bar",
+                  "featured": true
+                },
+                {
+                  "name": "pull pork slider",
+                  "description": "with macaroni and cheese",
+                  "featured": true
+                },
+                {
+                  "name": "beef slider",
+                  "description": "with caramelized onions, mushrooms and garlic aioli sauce",
+                  "featured": true
+                },
+                {
+                  "name": "bbq grilled tofu slider",
+                  "description": "with coleslaw",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "caprese slider",
+                  "description": "with pesto sauce",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "french fries",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "herbivore",
+              "items": [
+                {
+                  "name": "eggplant parmesan",
+                  "description": "with marinara sauce and daiya cheese",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "creamy polenta",
+                  "description": "with roasted cherry tomatoes and pesto",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "small red beans",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted carrots",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "rice bread focaccia",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "ovens",
+              "items": [
+                {
+                  "name": "chocolate chip cookies",
+                  "featured": false
+                },
+                {
+                  "name": "M&M cookie",
+                  "featured": false
+                },
+                {
+                  "name": "oatmeal raisin cookie",
+                  "featured": false
+                },
+                {
+                  "name": "Rice Krispie treats bar",
+                  "featured": false
+                },
+                {
+                  "name": "double chocolate cookie",
+                  "featured": false
+                },
+                {
+                  "name": "blondie",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apricot oatmeal bars",
+                  "featured": false
+                },
+                {
+                  "name": "baked pumpkin bar",
+                  "featured": false
+                },
+                {
+                  "name": "carrot oatmeal raisin bar",
+                  "featured": false
+                },
+                {
+                  "name": "brownies",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "red velvet bars",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "raspberry bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "pecan bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "apple crumble bars",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "lemon bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "coconut almond meltaway bar",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "sugar cookies",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cookie crusted cheesecake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "classic cheesecake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "devil's food chocolate cupcakes",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "frosted devil's food cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "pumpkin pie",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "red velvet cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "orange cupcake with chocolate frosting",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "vegan vanilla cake",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "vegan chocolate cake",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "vegan carrot cake",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "oreo cheese cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "salvadoran quesadilla cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "tres leches cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "vanilla cupcake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "banana cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "pineapple upside down cake",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "banana bread",
+                  "vegetarian": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "stocks",
+              "items": [
+                {
+                  "name": "beef menudo",
+                  "featured": true
+                },
+                {
+                  "name": "miso tofu soup",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            }
+          ],
+          "period": "dinner",
+          "startTime": "17:00",
+          "endTime": "19:30"
+        }
+      ]
+    },
+    {
+      "hall": "collins",
+      "date": "2026-10-04",
+      "status": "ok",
+      "sourceUrl": "https://collins-cmc.cafebonappetit.com/",
+      "lastCheckedAt": "2026-10-04T19:39:45.287Z",
+      "lastSuccessfulCheckAt": "2026-10-04T19:39:45.287Z",
+      "menuUpdatedAt": "2026-10-04T19:39:45.287Z",
+      "meals": [
+        {
+          "name": "Brunch",
+          "stations": [
+            {
+              "name": "breakfast @ home",
+              "items": [
+                {
+                  "name": "cage-free scrambled eggs",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "lumberjack scramble eggs",
+                  "featured": true
+                },
+                {
+                  "name": "oven-baked tater tots",
+                  "description": "with potato tots",
+                  "featured": true
+                },
+                {
+                  "name": "pork breakfast sausage patties",
+                  "featured": true
+                },
+                {
+                  "name": "chicken apple sausage link",
+                  "featured": true
+                },
+                {
+                  "name": "Morningstar sausage patty",
+                  "description": "with plant-based sausage patty",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "old-fashioned oatmeal",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "breakfast options",
+              "items": [
+                {
+                  "name": "pomegranate cheese blintz",
+                  "vegetarian": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "options",
+              "items": [
+                {
+                  "name": "the CarveCraft",
+                  "description": "herb roasted turkey",
+                  "featured": true
+                },
+                {
+                  "name": "cream gratin potatoes",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "cajun grill zucchini",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "expo",
+              "items": [
+                {
+                  "name": "acai bowls",
+                  "vegetarian": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "ovens",
+              "items": [
+                {
+                  "name": "early meal",
+                  "description": "with sushi rice, cage-free egg, prosciutto, and green onion",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "sweets",
+              "items": [
+                {
+                  "name": "orange chocolate chip scones",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "blueberry muffins",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "coconut chia seed pudding",
+                  "description": "with coconut milk and pure maple syrup",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "Collins giant famous chocolate chip cookies",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "Collins famous chocolate chip cookies",
+                  "vegetarian": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "breakfast bakery",
+              "items": [
+                {
+                  "name": "jalapeno cheese bagel",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "Udi's blueberry muffin",
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "salad bar",
+              "items": [
+                {
+                  "name": "Self-serve"
+                }
+              ]
+            }
+          ],
+          "period": "brunch",
+          "startTime": "10:30",
+          "endTime": "12:30"
+        },
+        {
+          "name": "Dinner",
+          "stations": [
+            {
+              "name": "@home",
+              "items": [
+                {
+                  "name": "stuffed bell pepper",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted red potatoes",
+                  "description": "with garlic powder",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "lemon-herb bone-in chicken",
+                  "description": "with parsley, lemon pepper seasoning, and herbs de provence",
+                  "featured": true
+                },
+                {
+                  "name": "cilantro lime grilled vegetables",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "expo",
+              "items": [
+                {
+                  "name": "Mongolian stir fry",
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "grill",
+              "items": [
+                {
+                  "name": "chicken breast marinated",
+                  "featured": false
+                },
+                {
+                  "name": "garden burger patty",
+                  "description": "with plant-based patty",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "all-beef hot dog",
+                  "featured": false
+                },
+                {
+                  "name": "beef patty",
+                  "featured": false
+                },
+                {
+                  "name": "beyond burger",
+                  "description": "with plant-based burger patty",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "plant forward",
+              "items": [
+                {
+                  "name": "plant based orange chicken stir fry",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "vegan edamame, bell pepper, and mushroom fried rice",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "roasted lemon garlic green beans",
+                  "description": "with string beans, lemon juice, and lemon zest",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "simply oasis",
+              "items": [
+                {
+                  "name": "pork carnitas",
+                  "featured": true
+                },
+                {
+                  "name": "cilantro lime rice",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "chipotle refried pinto beans",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "Ovens",
+              "items": [
+                {
+                  "name": "cauliflower crust vegetable pizza",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "cauliflower crust pepperoni pizza",
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "sweets",
+              "items": [
+                {
+                  "name": "chocolate mousse cake",
+                  "featured": true
+                },
+                {
+                  "name": "cheesecake bar",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "Collins famous chocolate chip cookies",
+                  "vegetarian": true,
+                  "featured": true
+                },
+                {
+                  "name": "blueberry pie",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "cold plant forward",
+              "items": [
+                {
+                  "name": "house-made sesame hummus",
+                  "vegan": true,
+                  "featured": true
+                },
+                {
+                  "name": "cabbage, and carrot slaw with ginger rice vinegar",
+                  "vegan": true,
+                  "featured": true
+                }
+              ]
+            },
+            {
+              "name": "hot plant forward",
+              "items": [
+                {
+                  "name": "house-made sesame hummus",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "kalamata olives",
+                  "vegan": true,
+                  "featured": false
+                },
+                {
+                  "name": "white pita",
+                  "description": "with pita bread",
+                  "vegetarian": true,
+                  "featured": false
+                },
+                {
+                  "name": "green stuffed olives",
+                  "vegan": true,
+                  "featured": false
+                }
+              ]
+            },
+            {
+              "name": "salad bar",
+              "items": [
+                {
+                  "name": "Self-serve"
+                }
+              ]
+            }
+          ],
+          "period": "dinner",
+          "startTime": "16:30",
+          "endTime": "18:30"
+        }
+      ]
+    },
+    {
+      "hall": "frank",
+      "date": "2026-10-04",
+      "status": "ok",
+      "sourceUrl": "https://www.pomona.edu/administration/dining/menus/frank",
+      "lastCheckedAt": "2026-10-04T19:40:49.439Z",
+      "lastSuccessfulCheckAt": "2026-10-04T19:40:49.439Z",
+      "menuUpdatedAt": "2026-10-04T19:40:49.439Z",
+      "meals": [
+        {
+          "stations": [],
+          "name": "Continental Breakfast",
+          "period": "breakfast",
+          "startTime": "07:30",
+          "endTime": "09:30"
+        },
+        {
+          "name": "Brunch",
+          "stations": [
+            {
+              "name": "Mainline",
+              "items": [
+                {
+                  "name": "Chicken Spring Roll",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegetable Spring Roll",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Vegetable and Beef Mandu Dumpling",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Steamed Jasmine Rice",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Chile Garlic Edamame",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Sweet Thai Chili Sauce",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Plum Sauce",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "TODAY`S SOUP",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Broccoli Cheddar Soup",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Expo Station",
+              "items": [
+                {
+                  "name": "WHOLE EATS STATION - No \"Big 9\" Alllergens, Gluten Free",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Vietnamese American Garlic Noodles with Skirt Steak",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Pizza",
+              "items": [
+                {
+                  "name": "Cheese Pizza",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Pepperoni Pizza",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Garlic Cheese Bread Pizza Squares",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Bacon Western Cheeseburger Pizza",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "TODAY`S SMOOTHIE",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Tropical Green Smoothie (Blue Zone)",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Grill Station",
+              "items": [
+                {
+                  "name": "Scrambled Whole Eggs",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Scrambled Egg Whites",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegetarian Sausage",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Bacon",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Sausage Links",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Tater Tots",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Tofu Scramble",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Hard Boiled Eggs",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Buttermilk Pancakes",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Melted Butter",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Pancake Syrup",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Cinnamon French Toast",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Outdoor Grill",
+              "items": [
+                {
+                  "name": "OUTDOOR PATIO - Omelettes and Eggs Made to Order",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "OUTDOOR OMELET BAR - Scrambled Eggs and Egg Whites, Assorted Veggies, Cheese and Meats",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Soup Station",
+              "items": [
+                {
+                  "name": "Gluten Free Oatmeal",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Broccoli Cheddar Soup",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Salad Bar",
+              "items": [
+                {
+                  "name": "Potato Salad",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Caesar Salad",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Deli Bar",
+              "items": [
+                {
+                  "name": "LOX AND BAGEL BAR - Assorted 42nd Street Bagels, Smoked Salmon, Whipped Cream Cheese, Sliced Red Onion, Capers, Sliced Tomato, Avocado",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Desserts",
+              "items": [
+                {
+                  "name": "Assorted Breakfast Pastries and Desserts - Croissants, Muffins, Danish, Scones",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Assorted Donuts - May Contain Egg, Milk, Soy, Wheat",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Raspberry Swirl Blondie",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegan Lemon Bundt Cake",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Chocolate Cupcake with Cream Cheese Frosting",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            }
+          ],
+          "period": "brunch",
+          "startTime": "10:30",
+          "endTime": "13:30"
+        },
+        {
+          "name": "Dinner",
+          "stations": [
+            {
+              "name": "Mainline",
+              "items": [
+                {
+                  "name": "NACHO BAR",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Frank`s Carne Asada",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Pollo Asado",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Nacho Cheese Sauce",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Mexican Rice",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Salsa",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Guacamole",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Pico de Gallo",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Sour Cream",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Diced Jalapeno",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "TODAY`S SOUP",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Chicken Tortilla Soup",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "TODAY`S SALADS",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Kale Salad with Dates and Parmesan",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Caesar Salad",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Potato Salad",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Expo Station",
+              "items": [
+                {
+                  "name": "WHOLE EATS STATION - No \"Big 9\" Alllergens, Gluten Free",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Meatballs with Crisp Red Potatoes and Brussels Sprouts",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Pizza",
+              "items": [
+                {
+                  "name": "Birria Bao Bun Taco",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Garlic Cheese Bread Pizza Squares",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Grill Station",
+              "items": [
+                {
+                  "name": "NACHO BAR",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Frank`s Carne Asada",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Pollo Asado",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Nacho Cheese Sauce",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Refried Beans",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Mexican Rice",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Salsa",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Guacamole",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Pico de Gallo",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Sour Cream",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Diced Jalapeno",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Soup Station",
+              "items": [
+                {
+                  "name": "Chicken Tortilla Soup",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Salad Bar",
+              "items": [
+                {
+                  "name": "Kale Salad with Dates and Parmesan",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Caesar Salad",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "5 Grain Salad",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Desserts",
+              "items": [
+                {
+                  "name": "Freshly Baked Cookies (May contain allergens egg, milk, soy, wheat)",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Chocolate Cupcake with Cream Cheese Frosting",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegan Lemon Bundt Cake",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Biscoff Blondies",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Cinnamon Toast Crunch Tres Leches",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            }
+          ],
+          "period": "dinner",
+          "startTime": "17:00",
+          "endTime": "19:30"
+        }
+      ]
+    },
+    {
+      "hall": "frary",
+      "date": "2026-10-04",
+      "status": "ok",
+      "sourceUrl": "https://www.pomona.edu/administration/dining/menus/frary",
+      "lastCheckedAt": "2026-10-04T19:41:54.655Z",
+      "lastSuccessfulCheckAt": "2026-10-04T19:41:54.655Z",
+      "menuUpdatedAt": "2026-10-04T19:41:54.655Z",
+      "meals": [
+        {
+          "stations": [],
+          "name": "Continental Breakfast",
+          "period": "breakfast",
+          "startTime": "07:30",
+          "endTime": "09:30"
+        },
+        {
+          "name": "Brunch",
+          "stations": [
+            {
+              "name": "Mainline",
+              "items": [
+                {
+                  "name": "Pork Sausage Patty",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Chicken Apple Sausage",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Beyond Breakfast Sausage",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Triangle Potatoes",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Tofu Scramble",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Hard Boiled Eggs",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Scrambled Whole Eggs",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Scrambled Egg Whites",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Warm Flour Tortilla",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Salsa, Pico de Gallo, Guacamole, Shredded Cheese, Cilantro  Onions",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Expo Station",
+              "items": [
+                {
+                  "name": "OMELET BAR - Scrambled Eggs and Egg Whites, Assorted Veggies, Cheese and Meats (Bacon, Ham, Turkey)",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Shredded Cheese",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Fried Egg",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Pizza",
+              "items": [
+                {
+                  "name": "Steamed Mussels with Herb Butter",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Breaded Butterfly Shrimp",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Marinara Sauce",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Angel Hair al Pomodoro",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Steamed Vegetables - Carrots, Broccoli, Cabbage",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Grill Station",
+              "items": [
+                {
+                  "name": "Blueberry Pancakes",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Buttermilk Pancakes",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Chocolate Chip Pancakes",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Cinnamon French Toast",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Whipped Salted Butter",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Pancake Syrup",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Soup Station",
+              "items": [
+                {
+                  "name": "Gluten Free Oatmeal",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Pozole",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Salad Bar",
+              "items": [
+                {
+                  "name": "Berry and Yogurt Bar on Deli Station",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Smoked Salmon Bar",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Desserts",
+              "items": [
+                {
+                  "name": "Assorted Breakfast Pastries and Desserts - Croissants, Muffins, Danish, Scones",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Assorted Donuts - May Contain Egg, Milk, Soy, Wheat",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Apple Turnover",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Croissant",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegan Lemon Bundt Cake",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            }
+          ],
+          "period": "brunch",
+          "startTime": "10:30",
+          "endTime": "13:30"
+        },
+        {
+          "name": "Dinner",
+          "stations": [
+            {
+              "name": "Mainline",
+              "items": [
+                {
+                  "name": "Char Grilled Steak - Steak",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Mashed Yukon Gold Potatoes",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Steakhouse Spinach",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Marinated Herb Tofu",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Assorted Dinner Rolls",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Garlic Herb Butter",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Dairy State Compound Butter",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Expo Station",
+              "items": [
+                {
+                  "name": "Naan Street Tacos with a Choice of Chicken/Beef Shawarma or Tandoori Tofu",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Raita",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Chicken Shawarma",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Tandoori Tofu",
+                  "vegetarian": true,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Pizza",
+              "items": [
+                {
+                  "name": "Cheese Pizza",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Pepperoni Pizza",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Turkey Bacon Bravo Flatbread",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "PASTA BAR",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Penne Pasta",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Cheese Tortellini",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Marinara Sauce",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Pesto Cream Sauce",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Steamed Broccoli",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Grill Station",
+              "items": [
+                {
+                  "name": "BURGER BAR",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Beef Patty",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Turkey Burger Patty",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Grilled Halal Chicken Breast",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegan Black Bean Burger Patty",
+                  "vegetarian": false,
+                  "vegan": true
+                },
+                {
+                  "name": "Onion Rings",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "French Fries",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            },
+            {
+              "name": "Salad Bar",
+              "items": [
+                {
+                  "name": "Caesar Salad",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Cucumber Salad with Dill Yogurt Dressing",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Turkey Cobb Salad",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "TODAY`S SOUP",
+                  "vegetarian": false,
+                  "vegan": false
+                },
+                {
+                  "name": "Pozole",
+                  "vegetarian": false,
+                  "vegan": false
+                }
+              ]
+            },
+            {
+              "name": "Desserts",
+              "items": [
+                {
+                  "name": "Raspberry Swirl Blondie",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Chocolate Cupcake with Cream Cheese Frosting",
+                  "vegetarian": true,
+                  "vegan": false
+                },
+                {
+                  "name": "Vegan Lemon Bundt Cake",
+                  "vegetarian": false,
+                  "vegan": true
+                }
+              ]
+            }
+          ],
+          "period": "dinner",
+          "startTime": "17:00",
+          "endTime": "19:30"
+        }
+      ]
+    },
+    {
+      "hall": "oldenborg",
+      "date": "2026-10-04",
+      "status": "unavailable",
+      "sourceUrl": "https://www.pomona.edu/administration/dining/menus/oldenborg",
+      "lastCheckedAt": "2026-10-04T19:42:59.421Z",
+      "lastSuccessfulCheckAt": null,
+      "menuUpdatedAt": null,
+      "meals": null,
+      "error": {
+        "code": "MENU_NOT_PUBLISHED",
+        "message": "Source did not publish this date."
+      }
+    }
+  ]
+}

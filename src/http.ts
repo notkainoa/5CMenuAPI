@@ -1,5 +1,6 @@
 import { californiaDate, isValidDate, supportedDates } from './dates.ts';
 import { menuFor } from './menus.ts';
+import { highlightsEnabled, readHighlights, withHighlights } from './highlights';
 import { readSnapshot } from './storage.ts';
 import { HALLS, type Env, type HallId, type HallMenu } from './types.ts';
 
@@ -102,13 +103,17 @@ function knownRoute(pathname: string): boolean {
 
 function requestedDate(url: URL, now: Date): { date: string; explicit: boolean } | ApiInputError {
   const entries = [...url.searchParams.entries()];
-  if (entries.some(([name]) => name !== 'date')) {
-    return { code: 'unknown_query_parameter', message: 'Only the date query parameter is supported.' };
+  if (entries.some(([name]) => name !== 'date' && name !== 'highlights')) {
+    return { code: 'unknown_query_parameter', message: 'Only date and highlights query parameters are supported.' };
   }
-  if (entries.length > 1) {
+  if (url.searchParams.getAll('date').length > 1) {
     return { code: 'invalid_date', message: 'Supply date at most once.' };
   }
 
+  const highlights = url.searchParams.getAll('highlights');
+  if (highlights.length > 1 || highlights.some(value => value !== 'true' && value !== 'false')) {
+    return { code: 'invalid_highlights', message: 'Supply highlights at most once, as true or false.' };
+  }
   const date = url.searchParams.get('date');
   if (date === null) return { date: californiaDate(now), explicit: false };
   if (!isValidDate(date)) return { code: 'invalid_date', message: 'date must use YYYY-MM-DD.' };
@@ -190,8 +195,15 @@ export async function handleRequest(request: Request, env: Env, now = new Date()
     return errorResponse(request, 503, 'storage_unavailable', 'Stored menu data is temporarily unavailable.');
   }
 
+  const includeHighlights = url.searchParams.get('highlights') !== 'false';
+  const records = includeHighlights && highlightsEnabled(env) && input.date === californiaDate(now) ? await readHighlights(env) : {};
+  const present = async (id: HallId) => {
+    const menu = menuFor(snapshot, id, input.date, now);
+    return includeHighlights ? withHighlights(menu, records, env, now) : menu;
+  };
+
   if (url.pathname === '/v1/menus') {
-    const halls = HALLS.map(({ id }) => menuFor(snapshot, id, input.date, now));
+    const halls = await Promise.all(HALLS.map(({ id }) => present(id)));
     const body = { date: input.date, timezone: TIME_ZONE, halls };
     // Keep the documented combined shape even when every individual hall is unavailable.
     if (halls.every(isUnavailable)) return jsonResponse(body, 503, request);
@@ -200,7 +212,7 @@ export async function handleRequest(request: Request, env: Env, now = new Date()
 
   // The earlier route check has already rejected an unknown hall.
   if (!hall) return errorResponse(request, 404, 'hall_not_found', 'Unknown dining hall.');
-  const menu = menuFor(snapshot, hall, input.date, now);
+  const menu = await present(hall);
   if (isUnavailable(menu)) {
     return jsonResponse(menu as unknown as Json, 503, request);
   }
