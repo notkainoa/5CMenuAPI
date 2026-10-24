@@ -13,7 +13,7 @@
     "deploy": "wrangler deploy",
     "sources": "tsx scripts/check-sources.ts",
     "benchmark": "tsx scripts/benchmark.ts",
-    "highlights:eval": "tsx scripts/highlight-evaluation.ts"
+    "highlights:audit": "tsx scripts/capture-highlight-audit.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260906.1",

@@ -1,8 +1,9 @@
 import { californiaDate } from './dates';
-import { CALL_INTERVAL_MS, generateHighlights, highlightInput, HighlightGenerationError, HIGHLIGHTS_KEY, highlightsEnabled, menuVersion, type SavedHighlights } from './highlights';
+import { CALL_INTERVAL_MS, checkedInput, generateHighlights, HighlightGenerationError, HIGHLIGHTS_KEY, highlightsEnabled, menuVersion, type HighlightFailureReason, type SavedHighlights } from './highlights';
 import { readSnapshot } from './storage';
 import { menuFor } from './menus';
 import { HALLS, type Env, type Fetcher } from './types';
+import { hasItems, validateSelections } from './highlight-selection';
 
 export const HIGHLIGHT_STATE_KEY = 'highlight-jobs:v2';
 export const MAX_DAILY_CALLS = 21;
@@ -56,16 +57,27 @@ export async function runHighlightJob(env: Env, storage: JobStorage, now = new D
   const candidates = [];
   for (const { id } of HALLS) {
     const menu = menuFor(snapshot, id, date, now);
-    if (!menu || menu.status !== 'ok' || !menu.meals?.length) continue;
+    // Stale menus still show their last verified food, and picks are tied to
+    // that exact content, so they remain eligible.
+    if (menu.status !== 'ok' && menu.status !== 'stale' || !hasItems(menu)) continue;
     const version = await menuVersion(menu);
     let job = state.jobs[id];
     if (!job || job.record.menuVersion !== version) {
       // Reuse A if an upstream source changes A → B → A. Failed versions retain
       // their attempt count too. Only attempted versions need historical state.
       if (job?.attempts) state.history[job.record.menuVersion] = job;
-      job = state.history[version] ?? { record: { date, menuVersion: version, status: 'pending', generatedAt: null, selections: [] }, attempts: 0, retryAt: 0, finished: false };
+      job = state.history[version] ?? { record: { date, menuVersion: version, status: 'pending', generatedAt: null, selections: {} }, attempts: 0, retryAt: 0, finished: false };
       delete state.history[version];
       state.jobs[id] = job;
+    }
+    // A deploy with stricter validation can invalidate a saved result for an
+    // unchanged menu. Requeue it within the version's remaining attempts.
+    if (job.finished && job.record.status === 'ready') {
+      try { validateSelections(job.record.selections, menu, 'id'); }
+      catch {
+        job.finished = false;
+        job.record = { ...job.record, status: 'pending', generatedAt: null, selections: {} };
+      }
     }
     if (!job.finished && (job.attempts >= MAX_VERSION_ATTEMPTS || state.calls >= MAX_DAILY_CALLS)) {
       job.finished = true;
@@ -83,7 +95,7 @@ export async function runHighlightJob(env: Env, storage: JobStorage, now = new D
     return;
   }
   const { menu, job } = candidate;
-  try { highlightInput(menu); }
+  try { checkedInput(menu); }
   catch (error) {
     if (!(error instanceof HighlightGenerationError)) throw error;
     job.finished = true;
@@ -105,20 +117,27 @@ export async function runHighlightJob(env: Env, storage: JobStorage, now = new D
     delete job.record.reason;
     job.finished = true;
   } catch (error) {
-    job.record.status = 'unavailable';
-    job.record.reason = 'generation_failed';
+    // Anything other than a classified provider error (timeouts, malformed JSON,
+    // failed validation) is retryable within the version's attempt allowance.
+    let reason: HighlightFailureReason = 'generation_failed';
     if (error instanceof HighlightGenerationError) {
       job.finished = !error.retryable;
+      reason = error.reason;
       job.retryAt = currentTime() + error.retryAfterMs;
       // Groq limits apply to the whole organization, not just this hall.
       state.nextCallAt = Math.max(state.nextCallAt, job.retryAt);
     }
-    if (job.attempts >= MAX_VERSION_ATTEMPTS) {
+    if (!job.finished && job.attempts >= MAX_VERSION_ATTEMPTS) {
       job.finished = true;
-      job.record.reason = 'attempts_exhausted';
+      reason = 'attempts_exhausted';
     }
-    console.warn(JSON.stringify({ event: 'highlights_failed', hall: menu.hall, date, attempt: job.attempts,
-      reason: error instanceof HighlightGenerationError ? error.message : 'Invalid, timed out, or failed Groq response' }));
+    // Stay pending while another attempt is planned.
+    job.record.status = job.finished ? 'unavailable' : 'pending';
+    if (job.finished) job.record.reason = reason;
+    else delete job.record.reason;
+    // Our own messages carry no secrets or provider bodies; bound them anyway.
+    console.warn(JSON.stringify({ event: 'highlights_failed', hall: menu.hall, date, attempt: job.attempts, willRetry: !job.finished,
+      reason: error instanceof Error ? `${error.name}: ${error.message}`.slice(0, 200) : 'Unknown failure' }));
   }
   await saveAndPublish();
 }

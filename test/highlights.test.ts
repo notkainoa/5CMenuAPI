@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { handleRequest } from '../src/http';
-import { CALL_INTERVAL_MS, generateHighlights, highlightInput, HIGHLIGHTS_KEY, menuVersion, validateSelections, withHighlights, PROMPT_VERSION } from '../src/highlights';
+import { CALL_INTERVAL_MS, generateHighlights, HIGHLIGHTS_KEY, menuVersion, withHighlights, PROMPT_VERSION } from '../src/highlights';
 import { HIGHLIGHT_STATE_KEY, MAX_DAILY_CALLS, MAX_VERSION_ATTEMPTS, runHighlightJob, type JobStorage } from '../src/highlight-jobs';
-import { minimalHighlightPrompt } from '../src/highlight-minimal-policy';
+import { highlightInput, highlightPrompt, validateSelections } from '../src/highlight-selection';
 import { SNAPSHOT_KEY } from '../src/storage';
 import { supportedDates } from '../src/dates';
 import { HALLS, type Env, type Fetcher, type HallMenu, type Snapshot } from '../src/types';
@@ -17,7 +17,7 @@ const menu: HallMenu = {
     { name: 'Dinner', stations: [{ name: 'Grill', items: [{ name: 'Chicken' }] }] },
   ],
 };
-const selections = [{ mealId: 'm0', itemIds: ['m0:s0:i0'] }, { mealId: 'm1', itemIds: ['m1:s0:i0'] }];
+const selections = { m0: [{ title: 'Tofu curry', sourceIds: ['m0:s0:i0'] }], m1: [{ title: 'Chicken', sourceIds: ['m1:s0:i0'] }] };
 
 function fixture() {
   const snapshot: Snapshot = { version: 1, refreshedAt: now.toISOString(), menus: { [menu.date]: { hoch: structuredClone(menu) } }, sources: {} };
@@ -52,33 +52,38 @@ test('requests GPT-OSS 120B with low reasoning and strict JSON; preserves origin
     const body = JSON.parse(String(init?.body));
     assert.equal(body.model, 'openai/gpt-oss-120b');
     assert.equal(body.reasoning_effort, 'low');
-    assert.equal(PROMPT_VERSION, '8');
-    assert.equal(body.messages[0].content, minimalHighlightPrompt(menu.hall));
+    assert.equal(PROMPT_VERSION, '9');
+    assert.equal(body.max_completion_tokens, 2_000);
+    assert.equal(body.messages[0].content, highlightPrompt(menu.hall));
     assert.equal(body.response_format.json_schema.strict, true);
     assert.equal(JSON.parse(body.messages[1].content).meals.length, 2);
     return goodResponse(init);
   });
-  assert.deepEqual(output.map(({ mealId, itemIds }) => ({ mealId, itemIds })), selections);
-  assert.deepEqual(output[0].groups, [{ title: 'Tofu curry', kind: 'single', sourceIds: ['m0:s0:i0'], componentIds: [] }]);
+  assert.deepEqual(output, selections);
   const f = fixture();
   await runHighlightJob(f.env, f.storage, now, async (_url, init) => goodResponse(init));
   const result = await handleRequest(new Request('https://test/v1/menus/hoch'), f.env, now);
   const body = await result.json() as any;
   assert.equal(body.highlights.status, 'ready');
   assert.deepEqual(body.highlights.meals[0].items[0], { id: 'm0:s0:i0', station: 'Main', name: 'Tofu curry', vegan: true });
+  assert.deepEqual(body.highlights.meals[0].groups, [{
+    title: 'Tofu curry', kind: 'single', sourceIds: ['m0:s0:i0'],
+    sourceItems: [{ id: 'm0:s0:i0', station: 'Main', name: 'Tofu curry', vegan: true }],
+  }]);
+  assert.equal(body.highlights.menuVersion, await menuVersion(menu));
 });
 
-test('rejects cross-meal, invented, duplicate, missing, and excessive selections', () => {
+test('rejects cross-meal, invented, duplicate, missing, extra-meal, and excessive saved selections', () => {
+  const group = (...sourceIds: string[]) => ({ title: '', sourceIds });
   for (const invalid of [
-    [{ mealId: 'm0', itemIds: ['m1:s0:i0'] }, selections[1]],
-    [{ mealId: 'm0', itemIds: ['invented'] }, selections[1]],
-    [{ mealId: 'm0', itemIds: ['m0:s0:i0', 'm0:s0:i0'] }, selections[1]],
-    [selections[0]], [selections[0], selections[0]],
-    [{ mealId: 'm0', itemIds: Array(6).fill('m0:s0:i0') }, selections[1]],
-  ]) assert.throws(() => validateSelections(invalid, menu));
-  assert.deepEqual(validateSelections([{ mealId: 'm0', itemIds: [] }, { mealId: 'm1', itemIds: [] }], menu), [
-    { mealId: 'm0', itemIds: [] }, { mealId: 'm1', itemIds: [] },
-  ]);
+    { m0: [group('m1:s0:i0')], m1: [] },
+    { m0: [group('invented')], m1: [] },
+    { m0: [group('m0:s0:i0'), group('m0:s0:i0')], m1: [] },
+    { m0: [] }, { m0: [], m1: [], m2: [] }, [], null,
+    { m0: Array(6).fill(group('m0:s0:i0')), m1: [] },
+    { m0: [{ sourceIds: ['m0:s0:i0'] }], m1: [] },
+  ]) assert.throws(() => validateSelections(invalid, menu, 'id'));
+  assert.deepEqual(validateSelections({ m0: [], m1: [] }, menu, 'id'), { m0: [], m1: [] });
 });
 
 test('public opt-out skips enrichment storage and malformed switches fail before storage', async () => {
@@ -150,7 +155,7 @@ test('optional storage failures and truncated model responses leave base menus a
   assert.equal(response.status, 200);
   assert.equal((await response.json() as any).meals[0].stations[0].items[0].name, 'Tofu curry');
   await assert.rejects(generateHighlights(menu, 'test-key', async () => Response.json({
-    choices: [{ finish_reason: 'length', message: { content: JSON.stringify({ meals: Object.fromEntries(selections.map(s => [s.mealId, s.itemIds])) }) } }],
+    choices: [{ finish_reason: 'length', message: { content: JSON.stringify({ meals: { m0: [], m1: [] } }) } }],
   })), /Incomplete/);
 });
 
@@ -310,6 +315,8 @@ test('strict schema requires empty meal services as well as populated ones', asy
     assert.equal(schema.type, 'object');
     assert.equal(schema.additionalProperties, false);
     assert.equal(schema.properties.m0.maxItems, 5);
+    assert.equal(schema.properties.m0.items.properties.sourceIds.maxItems, 4);
+    assert.equal(schema.properties.m0.items.properties.title.maxLength, 64);
     assert.equal(schema.properties.m1.maxItems, 0);
     assert.deepEqual(schema.properties.m0.items.required, ['sourceIds', 'title']);
     assert.deepEqual(schema.properties.m0.items.properties.sourceIds.items.enum, ['0']);
@@ -318,19 +325,18 @@ test('strict schema requires empty meal services as well as populated ones', asy
       content: JSON.stringify({ meals: { m0: [{ title: '', sourceIds: ['0'] }], m1: [], m2: [{ title: '', sourceIds: ['1'] }] } }),
     } }] });
   });
-  assert.deepEqual(result[1], { mealId: 'm1', itemIds: [], groups: [] });
+  assert.deepEqual(result.m1, []);
   await assert.rejects(generateHighlights(input, 'test-key', async () => Response.json({ choices: [{
     finish_reason: 'stop', message: { content: JSON.stringify({ meals: { m0: [], m2: [] } }) },
-  }] })), /Invalid minimal meal output/);
+  }] })), /Meal keys do not match/);
 });
 
- test('grouped API adds exact variant and program sources while legacy items retain original anchors', async () => {
+test('grouped API adds exact variant sources while items keep one original anchor per offering', async () => {
   const input = structuredClone(menu);
   input.meals![0].stations[0].items = [
     { name: 'Beef bulgogi', containsBeef: true, allergens: ['soy'], calories: 300 },
     { name: 'Chicken bulgogi', containsPoultry: true, allergens: ['wheat'], calories: 200 },
     { name: 'Slider bar' },
-    { name: 'Tofu slider', vegan: true, calories: 150 },
   ];
   const before = structuredClone(input);
   const generated = await generateHighlights(input, 'test-key', async () => Response.json({ choices: [{ finish_reason: 'stop', message: {
@@ -339,72 +345,162 @@ test('strict schema requires empty meal services as well as populated ones', asy
       { title: '', sourceIds: ['2'] },
     ], m1: [] } }),
   } }] }));
-  assert.deepEqual(generated[0].itemIds, ['m0:s0:i0', 'm0:s0:i2']);
-  assert.deepEqual(generated[0].groups![1], { title: 'Slider bar', kind: 'single', sourceIds: ['m0:s0:i2'], componentIds: [] });
-  // Existing canonical program records remain readable with exact components.
-  generated[0].groups![1] = { title: 'Slider bar', kind: 'program', sourceIds: ['m0:s0:i2'], componentIds: ['m0:s0:i3'] };
+  assert.deepEqual(generated.m0, [
+    { title: 'Chicken or beef bulgogi', sourceIds: ['m0:s0:i0', 'm0:s0:i1'] },
+    { title: 'Slider bar', sourceIds: ['m0:s0:i2'] },
+  ]);
   const result = await withHighlights(input, { hoch: {
     date: input.date, menuVersion: await menuVersion(input), status: 'ready', generatedAt: now.toISOString(), selections: generated,
   } }, fixture().env, now);
-  assert.equal(result.highlights.status, 'ready');
   if (result.highlights.status !== 'ready') assert.fail('Expected ready highlights');
   const lunch = result.highlights.meals[0];
-  assert.deepEqual(lunch.items, [
-    { id: 'm0:s0:i0', station: 'Main', ...input.meals![0].stations[0].items[0] },
-    { id: 'm0:s0:i2', station: 'Main', ...input.meals![0].stations[0].items[2] },
-  ]);
-  assert.deepEqual(lunch.groups[0].sourceItems, [
-    lunch.items[0], { id: 'm0:s0:i1', station: 'Main', ...input.meals![0].stations[0].items[1] },
-  ]);
-  assert.deepEqual(lunch.groups[1].componentItems, [{ id: 'm0:s0:i3', station: 'Main', ...input.meals![0].stations[0].items[3] }]);
-  assert.equal('vegan' in lunch.groups[1], false);
-  assert.equal('calories' in lunch.groups[0], false);
-  assert.equal('allergens' in lunch.groups[0], false);
-  assert.deepEqual(result.highlights.meals[1].groups, []);
+  const source = (i: number) => ({ id: `m0:s0:i${i}`, station: 'Main', ...input.meals![0].stations[0].items[i] });
+  assert.deepEqual(lunch.items, [source(0), source(2)]);
+  assert.deepEqual(lunch.groups[0], {
+    title: 'Chicken or beef bulgogi', kind: 'variants', sourceIds: ['m0:s0:i0', 'm0:s0:i1'], sourceItems: [source(0), source(1)],
+  });
+  assert.equal(lunch.groups[1].kind, 'single');
+  // No aggregate dietary, allergen or nutrition fields on groups.
+  assert.deepEqual(Object.keys(lunch.groups[0]).sort(), ['kind', 'sourceIds', 'sourceItems', 'title']);
+  assert.deepEqual(result.highlights.meals[1], { mealIndex: 1, name: 'Dinner', items: [], groups: [] });
   assert.deepEqual(input, before);
 });
 
- test('legacy saved selections remain readable and acquire singleton API groups', async () => {
-  const result = await withHighlights(menu, { hoch: {
-    date: menu.date, menuVersion: await menuVersion(menu), status: 'ready', generatedAt: now.toISOString(), selections,
-  } }, fixture().env, now);
-  assert.equal(result.highlights.status, 'ready');
-  if (result.highlights.status !== 'ready') assert.fail('Expected ready highlights');
-  assert.deepEqual(result.highlights.meals[0].groups, [{
-    title: 'Tofu curry', kind: 'single', sourceIds: ['m0:s0:i0'], componentIds: [],
-    sourceItems: [{ id: 'm0:s0:i0', station: 'Main', name: 'Tofu curry', vegan: true }], componentItems: [],
-  }]);
-  assert.deepEqual(validateSelections(selections, menu), selections);
+test('invalid or tampered saved records are served as unavailable, never as ready', async () => {
+  const input = structuredClone(menu);
+  input.meals![0].stations[0].items = [{ name: 'Beef bulgogi' }, { name: 'Chicken bulgogi' }, { name: 'Orange tofu' }];
+  const version = await menuVersion(input);
+  const saved = (selections: unknown, extra = {}) => ({ hoch: {
+    date: input.date, menuVersion: version, status: 'ready', generatedAt: now.toISOString(), selections, ...extra,
+  } });
+  for (const value of [
+    { m0: [{ title: 'Chicken', sourceIds: ['m1:s0:i0'] }], m1: [] },
+    { m0: [{ title: 'Beef bulgogi', sourceIds: ['m0:s0:i0', 'm0:s0:i0'] }], m1: [] },
+    { m0: [{ title: 'Orange tofu', sourceIds: ['m0:s0:i2'], extra: true }], m1: [] },
+    [{ mealId: 'm0', itemIds: ['m0:s0:i0'] }],
+    null,
+  ]) {
+    const result = await withHighlights(input, saved(value), fixture().env, now);
+    assert.equal(result.highlights.status, 'unavailable');
+    assert.deepEqual(result.highlights.meals, []);
+    assert.deepEqual(result.meals, input.meals);
+  }
+  // A saved combined title that no longer passes the rules is served split, never as written.
+  const split = await withHighlights(input, saved({ m0: [{ title: 'Vegan bulgogi', sourceIds: ['m0:s0:i0', 'm0:s0:i1'] }], m1: [] }), fixture().env, now);
+  if (split.highlights.status !== 'ready') assert.fail('Expected ready highlights');
+  assert.deepEqual(split.highlights.meals[0].groups.map(group => [group.kind, group.title]), [['single', 'Beef bulgogi'], ['single', 'Chicken bulgogi']]);
+  const noTimestamp = await withHighlights(input, saved({ m0: [], m1: [] }, { generatedAt: null }), fixture().env, now);
+  assert.equal(noTimestamp.highlights.status, 'unavailable');
+  const otherVersion = await withHighlights(input, saved({ m0: [], m1: [] }, { menuVersion: 'old' }), fixture().env, now);
+  assert.equal(otherVersion.highlights.status, 'pending');
+  const otherDate = await withHighlights(input, saved({ m0: [], m1: [] }, { date: '2026-09-28' }), fixture().env, now);
+  assert.equal(otherDate.highlights.status, 'pending');
 });
 
- test('saved groups require one aligned original anchor per group and invalid saved data stays unavailable', async () => {
-  const good = [{ mealId: 'm0', itemIds: ['m0:s0:i0'], groups: [{ title: 'Tofu curry', kind: 'single', sourceIds: ['m0:s0:i0'], componentIds: [] }] }, selections[1]];
-  assert.doesNotThrow(() => validateSelections(good, menu));
-  const invalid = [
-    [{ ...good[0], itemIds: [] }, selections[1]],
-    [{ ...good[0], groups: [] }, selections[1]],
-    [{ ...good[0], groups: null }, selections[1]],
-    [{ ...good[0], groups: [{ title: 'Chicken', kind: 'single', sourceIds: ['m1:s0:i0'], componentIds: [] }] }, selections[1]],
+test('corrupt highlights storage never breaks the base menu response', async () => {
+  const f = fixture();
+  f.kv.set(HIGHLIGHTS_KEY, '{not json');
+  const response = await handleRequest(new Request('https://test/v1/menus/hoch'), f.env, now);
+  assert.equal(response.status, 200);
+  const body = await response.json() as any;
+  assert.equal(body.highlights.status, 'pending');
+  assert.deepEqual(body.meals, menu.meals);
+});
+
+const reply = (status: number, body: unknown = {}, headers: Record<string, string> = {}): Fetcher =>
+  async () => Response.json(body, { status, headers });
+const savedHoch = (f: ReturnType<typeof fixture>) => JSON.parse(f.kv.get(HIGHLIGHTS_KEY)!).hoch;
+
+test('retryable failures stay pending between attempts, then become unavailable with attempts_exhausted', async () => {
+  const failures: [string, Fetcher][] = [
+    ['server error', reply(503)],
+    ['schema miss', reply(400, { error: { code: 'json_validate_failed', message: 'x' } })],
+    ['timeout', async () => { throw new DOMException('The operation timed out', 'TimeoutError'); }],
+    ['malformed body', async () => new Response('<html>oops</html>', { status: 200 })],
+    ['malformed content', async () => Response.json({ choices: [{ finish_reason: 'stop', message: { content: '{"meals":' } }] })],
+    ['failed validation', async () => Response.json({ choices: [{ finish_reason: 'stop', message: {
+      content: JSON.stringify({ meals: { m0: [{ title: '', sourceIds: ['1'] }], m1: [] } }) } }] })],
   ];
-  for (const value of invalid) {
-    assert.throws(() => validateSelections(value, menu));
-    const result = await withHighlights(menu, { hoch: {
-      date: menu.date, menuVersion: await menuVersion(menu), status: 'ready', generatedAt: now.toISOString(), selections: value,
-    } }, fixture().env, now);
-    assert.equal(result.highlights.status, 'unavailable');
+  for (const [label, fetcher] of failures) {
+    const f = fixture();
+    let calls = 0;
+    const counted: Fetcher = async (url, init) => { calls++; return fetcher(url, init); };
+    for (let attempt = 1; attempt <= MAX_VERSION_ATTEMPTS + 1; attempt++) {
+      await runHighlightJob(f.env, f.storage, new Date(now.getTime() + attempt * 70_000), counted);
+      const saved = savedHoch(f);
+      if (attempt < MAX_VERSION_ATTEMPTS) {
+        assert.equal(saved.status, 'pending', label);
+        assert.equal(saved.reason, undefined, label);
+        const response = await handleRequest(new Request('https://test/v1/menus/hoch'), f.env, now);
+        assert.equal((await response.json() as any).highlights.status, 'pending', label);
+      }
+    }
+    assert.equal(calls, MAX_VERSION_ATTEMPTS, label);
+    assert.equal(savedHoch(f).status, 'unavailable', label);
+    assert.equal(savedHoch(f).reason, 'attempts_exhausted', label);
   }
 });
 
- test('saved variant groups use the same common-dish and source-name guard as minimal inference', () => {
-  const input = structuredClone(menu);
-  input.meals![0].stations[0].items = [
-    { name: 'Beef bulgogi', description: 'orange tofu sauce' },
-    { name: 'Chicken bulgogi' }, { name: 'Orange tofu' },
-  ];
-  const saved = (sourceIds: string[], title: string) => [{
-    mealId: 'm0', itemIds: [sourceIds[0]], groups: [{ title, kind: 'variants', sourceIds, componentIds: [] }],
-  }, selections[1]];
-  assert.doesNotThrow(() => validateSelections(saved(['m0:s0:i0', 'm0:s0:i1'], 'Chicken or beef bulgogi'), input));
-  assert.throws(() => validateSelections(saved(['m0:s0:i0', 'm0:s0:i2'], 'Beef bulgogi or orange tofu'), input), /No common named dish/);
-  assert.throws(() => validateSelections(saved(['m0:s0:i0', 'm0:s0:i1'], 'Chicken or beef bulgogi with sauce'), input), /Ungrounded variant title/);
+test('non-retryable provider errors stop after one call with a terminal reason', async () => {
+  for (const [status, reason] of [[401, 'generation_failed'], [400, 'generation_failed'], [413, 'input_too_large']] as const) {
+    const f = fixture();
+    let calls = 0;
+    const fetcher: Fetcher = async () => { calls++; return Response.json({ error: { code: 'other' } }, { status }); };
+    for (let tick = 0; tick < 3; tick++) await runHighlightJob(f.env, f.storage, new Date(now.getTime() + tick * 70_000), fetcher);
+    assert.equal(calls, 1, String(status));
+    assert.deepEqual([savedHoch(f).status, savedHoch(f).reason], ['unavailable', reason]);
+    const response = await handleRequest(new Request('https://test/v1/menus/hoch'), f.env, now);
+    const body = await response.json() as any;
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.highlights, { status: 'unavailable', reason, meals: [] });
+  }
+});
+
+test('a hall-wide Retry-After cooldown also delays other halls', async () => {
+  const f = fixture();
+  f.snapshot.menus[menu.date].collins = { ...structuredClone(menu), hall: 'collins' };
+  f.kv.set(SNAPSHOT_KEY, JSON.stringify(f.snapshot));
+  const halls: string[] = [];
+  const fetcher: Fetcher = async (_url, init) => {
+    halls.push(JSON.parse(JSON.parse(String(init?.body)).messages[1].content).hall);
+    return halls.length === 1 ? new Response('', { status: 429, headers: { 'retry-after': '600' } }) : goodResponse(init);
+  };
+  await runHighlightJob(f.env, f.storage, now, fetcher, () => 0);
+  await runHighlightJob(f.env, f.storage, new Date(now.getTime() + 120_000), fetcher, () => 0);
+  assert.equal(halls.length, 1);
+  assert.equal(f.alarms.at(-1), now.getTime() + 600_000);
+  await runHighlightJob(f.env, f.storage, new Date(now.getTime() + 600_000), fetcher, () => 0);
+  assert.equal(halls.length, 2);
+});
+
+test('stale menus with food still generate; menus with no items are not_applicable and never call Groq', async () => {
+  const f = fixture();
+  f.snapshot.menus[menu.date].hoch!.lastSuccessfulCheckAt = new Date(now.getTime() - 3 * 3_600_000).toISOString();
+  f.snapshot.menus[menu.date].collins = { ...structuredClone(menu), hall: 'collins', meals: [{ name: 'Continental Breakfast', stations: [] }] };
+  f.kv.set(SNAPSHOT_KEY, JSON.stringify(f.snapshot));
+  const halls: string[] = [];
+  const fetcher: Fetcher = async (_url, init) => { halls.push(JSON.parse(JSON.parse(String(init?.body)).messages[1].content).hall); return goodResponse(init); };
+  for (let tick = 0; tick < 3; tick++) await runHighlightJob(f.env, f.storage, new Date(now.getTime() + tick * 70_000), fetcher);
+  assert.deepEqual(halls, ['hoch']);
+  const body = await (await handleRequest(new Request('https://test/v1/menus'), f.env, now)).json() as any;
+  const status = (id: string) => body.halls.find((hall: any) => hall.hall === id);
+  assert.equal(status('hoch').status, 'stale');
+  assert.equal(status('hoch').highlights.status, 'ready');
+  assert.deepEqual(status('collins').highlights, { status: 'not_applicable', meals: [] });
+});
+
+test('a saved ready result that no longer validates is requeued within its attempt budget', async () => {
+  const f = fixture();
+  let calls = 0;
+  const fetcher: Fetcher = async (_url, init) => { calls++; return goodResponse(init); };
+  await runHighlightJob(f.env, f.storage, now, fetcher);
+  // Simulate a stricter validator by corrupting the saved selection in place.
+  const state = f.durable.get(HIGHLIGHT_STATE_KEY) as any;
+  state.jobs.hoch.record.selections = { m0: [{ title: '', sourceIds: ['m1:s0:i0'] }], m1: [] };
+  f.durable.set(HIGHLIGHT_STATE_KEY, state);
+  await runHighlightJob(f.env, f.storage, new Date(now.getTime() + 70_000), fetcher);
+  assert.equal(calls, 2);
+  assert.equal(savedHoch(f).status, 'ready');
+  await runHighlightJob(f.env, f.storage, new Date(now.getTime() + 140_000), fetcher);
+  assert.equal(calls, 2);
 });

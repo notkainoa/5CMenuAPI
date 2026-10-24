@@ -224,13 +224,13 @@ try {
   assert.ok(saved, 'The scheduled alarm must run and publish its result');
   assert.equal(groqCalls, 1);
   const response = await highlightRuntime.dispatchFetch('https://menu.test/v1/menus/hoch');
-  const output = await response.json() as { highlights: { status: string; meals: { items: { name: string; vegan: boolean }[]; groups: { title: string; sourceItems: { name: string; vegan: boolean }[]; componentItems: unknown[] }[] }[] } };
+  const output = await response.json() as { highlights: { status: string; meals: { items: { name: string; vegan: boolean }[]; groups: { title: string; kind: string; sourceItems: { name: string; vegan: boolean }[] }[] }[] } };
   assert.equal(output.highlights.status, 'ready');
   assert.equal(output.highlights.meals[0].items[0].name, 'Curry');
   assert.equal(output.highlights.meals[0].items[0].vegan, true);
   assert.equal(output.highlights.meals[0].groups[0].title, 'Curry');
   assert.equal(output.highlights.meals[0].groups[0].sourceItems[0].vegan, true);
-  assert.deepEqual(output.highlights.meals[0].groups[0].componentItems, []);
+  assert.equal(output.highlights.meals[0].groups[0].kind, 'single');
   const optOut = await highlightRuntime.dispatchFetch('https://menu.test/v1/menus/hoch?highlights=false');
   assert.ok(!('highlights' in (await optOut.json() as object)));
   assert.notEqual(optOut.headers.get('etag'), response.headers.get('etag'));

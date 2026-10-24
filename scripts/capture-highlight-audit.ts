@@ -1,10 +1,16 @@
-/** Capture one fresh hall-day selection per available source menu for review. */
+/**
+ * Capture one fresh hall-day selection per available hall with the shipped
+ * pipeline, then print every pick next to its station for manual review.
+ * Results resume from .wrangler/day-audit/<date>.json; delete it to start over.
+ * Usage: npm run highlights:audit -- [YYYY-MM-DD]
+ */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { HALLS, type HallMenu } from '../src/types';
 import { refreshHall } from '../src/providers';
 import { unavailableMenu } from '../src/menus';
 import { generateHighlights, PROMPT_VERSION, HighlightGenerationError } from '../src/highlights';
 import { californiaDate } from '../src/dates';
+import { indexMenu, type SelectionMap } from '../src/highlight-selection';
 
 const date = process.argv[2] ?? californiaDate(new Date());
 if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Use YYYY-MM-DD');
@@ -66,3 +72,16 @@ for (const hall of HALLS) {
     items: menu.meals?.flatMap(m => m.stations).flatMap(s => s.items).length ?? 0, ready: entry.selections !== null, error: entry.generationError ?? menu.error?.message }));
 }
 console.log(`Saved ${path}`);
+
+// Print picks per meal with each source's station, for checking against the menu.
+for (const entry of run.halls as (HallMenu & { selections: SelectionMap | null; generationError: string | null })[]) {
+  console.log(`\n## ${entry.hall} (${entry.status}${entry.generationError ? `, ${entry.generationError}` : ''})`);
+  if (!entry.selections) continue;
+  for (const meal of indexMenu(entry)) {
+    const groups = entry.selections[meal.id] ?? [];
+    const items = meal.items.length;
+    console.log(`- ${meal.name} [${items} items]: ${groups.map(group => group.sourceIds.length > 1
+      ? `${group.title} {${group.sourceIds.map(id => meal.items.find(item => item.id === id)!.item.name).join(' | ')}}`
+      : `${group.title} (${meal.items.find(item => item.id === group.sourceIds[0])!.station})`).join('; ') || 'none'}`);
+  }
+}
