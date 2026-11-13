@@ -55,6 +55,8 @@ test('Sodexo falls back to the built-in current menu id without page or state', 
   const result = await refreshSodexo('hoch', ['2026-11-13'], undefined, sodexoFetcher(() => htmlResponse('<html>redesigned</html>'), '1411281', calls));
   assert.equal(result.days.length, 1);
   assert.ok(calls.some(url => url.endsWith('/13147001/1411281?date=2026-11-13')));
+  // The built-in id is not remembered as if it had been discovered.
+  assert.equal(result.state.menuId, undefined);
 });
 
 test('Sodexo warns loudly when every requested date is an empty array', async t => {

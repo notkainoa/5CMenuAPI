@@ -74,15 +74,21 @@ test('Frank never publishes an all-empty day when the feed had food', async () =
   assert.ok(result.days[1].meals.some(meal => meal.name === 'Late Snack' && meal.startTime === undefined));
 });
 
-test('Pomona gives the hours page its own signal so a slow page cannot abort the feed', async () => {
+test('a hanging hours page times out on its own and the feed still loads', async () => {
   const signals: Record<string, AbortSignal | undefined> = {};
   const result = await refreshPomona('frank', ['2026-11-16'], undefined, async (input, init) => {
     const url = String(input);
     signals[url.endsWith('/Frank.json') ? 'feed' : 'hours'] = init?.signal ?? undefined;
     if (url.endsWith('/Frank.json')) return new Response(frankFeed([['20261116', 'Dinner', 'Pasta']]), { headers: { 'content-type': 'application/json' } });
-    throw new Error('hours page down');
+    // Never answers: only its own timeout can end this request.
+    return new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+    });
   });
   assert.ok(signals.feed && signals.hours);
   assert.notEqual(signals.feed, signals.hours);
+  assert.equal(signals.hours?.aborted, true);
+  assert.equal(signals.feed?.aborted, false);
   assert.equal(result.days[0].meals[0].name, 'Dinner');
+  assert.equal(result.days[0].meals[0].stations[0].items[0].name, 'Pasta');
 });

@@ -233,7 +233,9 @@ export const refreshSodexo: RefreshHall = async (hall, dates, previous, fetcher)
   }
   return {
     days: dates.flatMap(date => successfulDates.has(date) && entries[date]?.day ? [entries[date].day!] : []),
-    state: { provider: 'sodexo', version: STATE_VERSION, menuId, dates: entries },
+    // Remember only an id that was actually found (now or before), so a code
+    // update to FALLBACK_MENU_ID isn't shadowed by a copy of the old constant.
+    state: { provider: 'sodexo', version: STATE_VERSION, ...(source === 'fallback' ? {} : { menuId }), dates: entries },
     ...(Object.keys(errors).length > 0 ? { errors } : {}),
   };
 };
