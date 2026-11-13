@@ -291,3 +291,15 @@ test('stored items accept a sorted unique allergen list and reject invalid entri
   assert.equal(validMeals([{ name: 'Lunch', stations: [{ name: 'Main', items: [{ name: 'Pasta', allergens: ['soybeans'] }] }] }]), false);
   assert.equal(validMeals([{ name: 'Lunch', stations: [{ name: 'Main', items: [{ name: 'Pasta', allergens: ['milk', 'milk'] }] }] }]), false);
 });
+
+test('a garbled provider error for a date fails that date even if a day was parsed', async () => {
+  const store = new MemoryStore();
+  const result = await refreshMenus({ MENUS: store }, async (_hall, dates) => ({
+    days: dates.map(date => day(date)),
+    state: { hash: 'garbled' },
+    errors: { [dates[1]]: 'broken' as never },
+  }), now);
+  assert.equal(result.menus['2026-09-06'].collins?.status, 'ok');
+  assert.equal(result.menus['2026-09-07'].collins?.status, 'unavailable');
+  assert.equal(result.menus['2026-09-07'].collins?.error?.code, 'SOURCE_FETCH_FAILED');
+});

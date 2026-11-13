@@ -17,11 +17,14 @@ function checkResult(result: ProviderResult, dates: string[]): CheckedResult {
   if (!isRecord(result) || !Array.isArray(result.days) || !isRecord(result.state)) throw new Error('Invalid provider result');
   if (result.errors !== undefined && !isRecord(result.errors)) throw new Error('Invalid provider errors');
   const errors: Record<string, ApiError> = {};
-  for (const [date, error] of Object.entries(result.errors ?? {})) {
-    if (dates.includes(date) && validError(error)) errors[date] = error;
-  }
   const days = new Map<string, ParsedDay>();
   const invalid = new Set<string>();
+  for (const [date, error] of Object.entries(result.errors ?? {})) {
+    if (!dates.includes(date)) continue;
+    // The provider flagged this date; a garbled flag still means "don't trust it".
+    if (validError(error)) errors[date] = error;
+    else invalid.add(date);
+  }
   for (const day of result.days as unknown[]) {
     const date = isRecord(day) && typeof day.date === 'string' ? day.date : undefined;
     if (date === undefined || !dates.includes(date)) continue; // Not attributable to a requested date.
