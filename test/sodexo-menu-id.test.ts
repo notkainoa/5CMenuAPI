@@ -57,6 +57,8 @@ test('Sodexo falls back to the built-in current menu id without page or state', 
   assert.ok(calls.some(url => url.endsWith('/13147001/1411281?date=2026-11-13')));
   // The built-in id is not remembered as if it had been discovered.
   assert.equal(result.state.menuId, undefined);
+  // The cached days still record which id they came from, so they stay reusable.
+  assert.equal(result.state.datesMenuId, '1411281');
 });
 
 test('Sodexo warns loudly when every requested date is an empty array', async t => {

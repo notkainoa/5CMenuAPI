@@ -23,7 +23,10 @@ interface SodexoState extends SourceState {
   provider: 'sodexo';
   version: typeof STATE_VERSION;
   dates: Record<string, CachedDate>;
+  /** An id found on the location page (now or in an earlier run). */
   menuId?: string;
+  /** The id the cached `dates` were fetched with, even if it was the fallback. */
+  datesMenuId?: string;
 }
 type MenuIdSource = 'page' | 'state' | 'fallback';
 
@@ -212,7 +215,7 @@ export const refreshSodexo: RefreshHall = async (hall, dates, previous, fetcher)
   const old = previousState(previous);
   const { menuId, source } = await resolveMenuId(old, fetcher);
   // Cached parses belong to one menu id; a new id starts fresh.
-  const cachedDates = old?.menuId === menuId ? old.dates : {};
+  const cachedDates = (old?.datesMenuId ?? old?.menuId) === menuId ? old!.dates : {};
   const entries: Record<string, CachedDate> = {};
   const successfulDates = new Set<string>();
   const errors: Record<string, ApiError> = {};
@@ -235,7 +238,11 @@ export const refreshSodexo: RefreshHall = async (hall, dates, previous, fetcher)
     days: dates.flatMap(date => successfulDates.has(date) && entries[date]?.day ? [entries[date].day!] : []),
     // Remember only an id that was actually found (now or before), so a code
     // update to FALLBACK_MENU_ID isn't shadowed by a copy of the old constant.
-    state: { provider: 'sodexo', version: STATE_VERSION, ...(source === 'fallback' ? {} : { menuId }), dates: entries },
+    state: {
+      provider: 'sodexo', version: STATE_VERSION,
+      ...(source === 'fallback' ? (old?.menuId ? { menuId: old.menuId } : {}) : { menuId }),
+      datesMenuId: menuId, dates: entries,
+    },
     ...(Object.keys(errors).length > 0 ? { errors } : {}),
   };
 };

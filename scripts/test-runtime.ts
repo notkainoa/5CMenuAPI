@@ -60,6 +60,7 @@ function nearbyServiceDates(now: Date): string[] {
   });
 }
 const pomonaDates = nearbyServiceDates(new Date());
+const DISCOVERED_MENU_ID = '9090909';
 const collectorRuntime = new Miniflare(convertV4MiniflareOptions({
   modules: true, script: bundle.outputFiles[0].text, compatibilityDate: '2026-09-06',
   kvNamespaces: ['MENUS'],
@@ -74,8 +75,15 @@ const collectorRuntime = new Miniflare(convertV4MiniflareOptions({
         : '';
       return new RuntimeResponse(`<script>Bamco.menu_items={"1":{"label":"Tofu"}};</script><section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${date}"><h3 class="site-panel__daypart-station-title">Main</h3><div class="site-panel__daypart-item" data-id="1"></div></div></section>${collinsHours}`, { headers: { 'content-type': 'text/html' } });
     }
+    if (url.hostname === 'hmc.sodexomyway.com') {
+      // A menu id the code doesn't hardcode, so Hoch only has food if discovery worked.
+      return new RuntimeResponse(`<script>self.__next_f.push({"locationId":"13147001","menuId":"${DISCOVERED_MENU_ID}"})</script>`, { headers: { 'content-type': 'text/html' } });
+    }
     if (url.hostname === 'api-prd.sodexomyway.net') {
-      return new RuntimeResponse(JSON.stringify([{ name: 'Lunch', groups: [{ name: 'Main', items: [{ formalName: 'Rice' }] }] }]), { headers: { 'content-type': 'application/json' } });
+      const meals = url.pathname.endsWith(`/${DISCOVERED_MENU_ID}`)
+        ? [{ name: 'Lunch', groups: [{ name: 'Main', items: [{ formalName: 'Rice' }] }] }]
+        : [];
+      return new RuntimeResponse(JSON.stringify(meals), { headers: { 'content-type': 'application/json' } });
     }
     if (url.hostname === 'api.pomona.edu') {
       const records = pomonaDates.flatMap(date => {
@@ -110,6 +118,8 @@ try {
   // (menu id discovery), 3 Pomona feeds, and 2 Pomona hours pages.
   const expectedSourceCalls = 3 * dates.length + dates.length + 1 + 3 + 2;
   assert.equal(sourceCalls, expectedSourceCalls);
+  // Hoch's food only comes from the menu id read off the location page.
+  assert.equal(snapshot.menus[dates[0]].hoch?.status, 'ok');
   for (const date of dates) {
     assert.equal(Object.keys(snapshot.menus[date]).length, 7);
     assert.ok(Object.values(snapshot.menus[date]).every(menu => menu?.status === 'ok'));
