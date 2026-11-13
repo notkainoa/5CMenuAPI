@@ -15,6 +15,8 @@ const HOURS_PAGES = {
 } as const;
 const MAX_BYTES = 2 * 1024 * 1024;
 const TIMEOUT_MS = 15_000;
+// The hours page only decorates the feed, so it gets a shorter, separate budget.
+const HOURS_TIMEOUT_MS = 5_000;
 const STATE_VERSION = 5;
 
 type JsonRecord = Record<string, unknown>;
@@ -203,17 +205,37 @@ async function request(url: string, previous: PomonaState | undefined, fetcher: 
   return fetcher(url, { headers, signal });
 }
 
-async function fetchHours(hall: keyof typeof FEEDS, fetcher: typeof fetch, signal: AbortSignal): Promise<PomonaWeek | undefined> {
+async function fetchHours(hall: keyof typeof FEEDS, fetcher: typeof fetch): Promise<PomonaWeek | undefined> {
   if (!(hall in HOURS_PAGES)) return undefined;
-  try {
+  // Its own controller: a slow hours page must never abort the feed request.
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<undefined>(resolve => {
+    timer = setTimeout(() => {
+      controller.abort();
+      console.warn(JSON.stringify({ event: 'pomona_hours_failed', hall, message: 'Hours page timed out' }));
+      resolve(undefined);
+    }, HOURS_TIMEOUT_MS);
+  });
+  const read = (async () => {
     const response = await fetcher(HOURS_PAGES[hall as keyof typeof HOURS_PAGES], {
       headers: { Accept: 'text/html' },
-      signal,
+      signal: controller.signal,
     });
-    if (!response.ok) return undefined;
-    return parsePomonaHours(await boundedText(response));
-  } catch {
+    if (!response.ok) throw new Error(`Hours page returned HTTP ${response.status}`);
+    const week = parsePomonaHours(await boundedText(response));
+    if (!week) throw new Error('Hours page has no recognizable hours block');
+    return week;
+  })();
+  try {
+    // Race the timer too, in case a fetcher ignores the abort signal.
+    return await Promise.race([read, timedOut]);
+  } catch (error) {
+    console.warn(JSON.stringify({ event: 'pomona_hours_failed', hall, message: error instanceof Error ? error.message : 'Unknown error' }));
     return undefined;
+  } finally {
+    clearTimeout(timer);
+    read.catch(() => undefined);
   }
 }
 
@@ -224,10 +246,13 @@ export const refreshPomona: RefreshHall = async (hall, dates, previous, fetcher)
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const url = FEEDS[hall as keyof typeof FEEDS];
-    let [response, hours] = await Promise.all([
+    let [response, freshHours] = await Promise.all([
       request(url, prior, fetcher, true, controller.signal),
-      fetchHours(hall as keyof typeof FEEDS, fetcher, controller.signal),
+      fetchHours(hall as keyof typeof FEEDS, fetcher),
     ]);
+    // A failed hours read keeps the last good schedule instead of reverting
+    // official names and times to Eatec's labels.
+    const hours = freshHours ?? prior?.hours;
     if (response.status === 304) {
       const covered = prior ? dates.filter(date => prior.days.some(day => day.date === date)).length : 0;
       // A shorter cached window must not hide newly requested dates behind an unchanged ETag.
