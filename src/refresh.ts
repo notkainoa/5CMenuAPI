@@ -1,18 +1,49 @@
 import { supportedDates } from './dates';
 import { unavailableMenu } from './menus';
-import { isRecord, readSnapshot, SNAPSHOT_KEY, validMeals } from './storage';
+import { isRecord, readPreviousSnapshot, SNAPSHOT_KEY, validMeals } from './storage';
 import { HALLS, type ApiError, type Env, type Fetcher, type HallId, type HallMenu, type ParsedDay, type ProviderResult, type RefreshHall, type Snapshot } from './types';
 
-function validateResult(result: ProviderResult, dates: string[]): void {
-  if (!result || !Array.isArray(result.days) || !isRecord(result.state)) throw new Error('Invalid provider result');
-  const seen = new Set<string>();
-  if (result.errors !== undefined && (!isRecord(result.errors) || Object.entries(result.errors).some(([date, error]) => !dates.includes(date) || !isRecord(error) || typeof error.code !== 'string' || typeof error.message !== 'string'))) throw new Error('Invalid provider errors');
-  for (const day of result.days) {
-    if (!dates.includes(day.date) || seen.has(day.date) || result.errors?.[day.date] || !['ok', 'closed'].includes(day.status) || !validMeals(day.meals)) throw new Error('Invalid provider menu');
-    const items = day.meals.flatMap(meal => meal.stations).flatMap(station => station.items);
-    if (day.status === 'ok' && items.length === 0 || day.status === 'closed' && day.meals.length !== 0) throw new Error('Menu lacks evidence of availability');
-    seen.add(day.date);
+interface CheckedResult { days: Map<string, ParsedDay>; invalid: Set<string>; errors: Record<string, ApiError>; }
+
+function validError(error: unknown): error is ApiError {
+  return isRecord(error) && typeof error.code === 'string' && typeof error.message === 'string';
+}
+
+/**
+ * Validates a provider result one day at a time. Only a structurally broken
+ * result throws (failing the whole hall); an invalid day fails just its date.
+ */
+function checkResult(result: ProviderResult, dates: string[]): CheckedResult {
+  if (!isRecord(result) || !Array.isArray(result.days) || !isRecord(result.state)) throw new Error('Invalid provider result');
+  if (result.errors !== undefined && !isRecord(result.errors)) throw new Error('Invalid provider errors');
+  const errors: Record<string, ApiError> = {};
+  const days = new Map<string, ParsedDay>();
+  const invalid = new Set<string>();
+  for (const [date, error] of Object.entries(result.errors ?? {})) {
+    if (!dates.includes(date)) continue;
+    // The provider flagged this date; a garbled flag still means "don't trust it".
+    if (validError(error)) errors[date] = error;
+    else invalid.add(date);
   }
+  for (const day of result.days as unknown[]) {
+    const date = isRecord(day) && typeof day.date === 'string' ? day.date : undefined;
+    if (date === undefined || !dates.includes(date)) continue; // Not attributable to a requested date.
+    if (invalid.has(date)) continue;
+    // Duplicates and days that also report an error are ambiguous, so neither copy is trusted.
+    if (days.has(date) || errors[date] || !validDay(day as ParsedDay)) {
+      days.delete(date);
+      invalid.add(date);
+      continue;
+    }
+    days.set(date, day as ParsedDay);
+  }
+  return { days, invalid, errors };
+}
+function validDay(day: ParsedDay): boolean {
+  if (!['ok', 'closed'].includes(day.status) || !validMeals(day.meals)) return false;
+  // An "ok" day needs food and a "closed" day must not list any.
+  const items = day.meals.flatMap(meal => meal.stations).flatMap(station => station.items);
+  return day.status === 'ok' ? items.length > 0 : day.meals.length === 0;
 }
 function success(hall: HallId, day: ParsedDay, old: HallMenu | undefined, checkedAt: string): HallMenu {
   const changed = !old || JSON.stringify(old.meals) !== JSON.stringify(day.meals) || (old.status === 'closed') !== (day.status === 'closed') && old.status !== 'stale';
@@ -33,8 +64,9 @@ function failure(hall: HallId, date: string, old: HallMenu | undefined, checkedA
 
 /** One scheduled writer; public requests never call this function. */
 export async function refreshMenus(env: Env, refreshHall: RefreshHall, now = new Date(), fetcher: Fetcher = globalThis.fetch): Promise<Snapshot> {
-  // A storage read failure must not overwrite the only good snapshot.
-  const previous = await readSnapshot(env.MENUS);
+  // A storage read failure must not overwrite the only good snapshot, but a
+  // corrupt snapshot reads as empty so this run can replace it.
+  const previous = await readPreviousSnapshot(env.MENUS);
   const dates = supportedDates(now);
   const checkedAt = now.toISOString();
   const next: Snapshot = { version: 1, refreshedAt: checkedAt, menus: Object.fromEntries(dates.map(date => [date, {}])), sources: {} };
@@ -43,17 +75,23 @@ export async function refreshMenus(env: Env, refreshHall: RefreshHall, now = new
     while (cursor < HALLS.length) {
       const hall = HALLS[cursor++].id;
       try {
-        const result = await refreshHall(hall, dates, previous?.sources[hall], fetcher);
-        validateResult(result, dates);
-        next.sources[hall] = result.state;
+        const raw = await refreshHall(hall, dates, previous?.sources[hall], fetcher);
+        const result = checkResult(raw, dates);
+        // A cached parse that produced an invalid day would be served again
+        // from this state, so drop it and let the next run refetch.
+        if (result.invalid.size === 0) next.sources[hall] = raw.state;
+        else console.warn(JSON.stringify({ event: 'source_days_invalid', hall, dates: [...result.invalid] }));
         for (const date of dates) {
-          const day = result.days.find(candidate => candidate.date === date);
+          const day = result.days.get(date);
           const old = previous?.menus[date]?.[hall];
-          next.menus[date][hall] = day ? success(hall, day, old, checkedAt) : failure(hall, date, old, checkedAt, true, result.errors?.[date]);
+          next.menus[date][hall] = day ? success(hall, day, old, checkedAt)
+            : failure(hall, date, old, checkedAt, !result.invalid.has(date), result.errors[date]);
         }
       } catch (error) {
+        // Do not carry this hall's source state forward: if it holds a cached
+        // parse that keeps failing, reusing it would repeat the failure until
+        // upstream content changed. Without it the next run refetches.
         console.warn(JSON.stringify({ event: 'source_failed', hall, message: error instanceof Error ? error.message : 'Unknown provider failure' }));
-        if (previous?.sources[hall]) next.sources[hall] = previous.sources[hall];
         for (const date of dates) next.menus[date][hall] = failure(hall, date, previous?.menus[date]?.[hall], checkedAt, false);
       }
     }

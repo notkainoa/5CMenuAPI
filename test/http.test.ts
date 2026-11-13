@@ -151,6 +151,23 @@ test('handles invalid stored data as a clean 503 response', async () => {
   assert.equal(response.headers.get('cache-control'), 'no-store');
 });
 
+test('one corrupted stored entry does not take down the rest of the API', async () => {
+  const stored = snapshot();
+  stored.menus[TODAY].collins = { ...menu('collins'), meals: [{ name: 'Lunch', stations: [{ name: 'Main', items: [{ name: '  ' }] }] }] };
+  const { env } = environment(JSON.stringify(stored));
+  const combined = await handleRequest(new Request(`https://api.example.test/v1/menus?date=${TODAY}`), env, NOW);
+  const good = await handleRequest(new Request(`https://api.example.test/v1/menus/mcconnell?date=${TODAY}`), env, NOW);
+  const bad = await handleRequest(new Request(`https://api.example.test/v1/menus/collins?date=${TODAY}`), env, NOW);
+
+  assert.equal(combined.status, 200);
+  const halls = (await json(combined) as { halls: HallMenu[] }).halls;
+  assert.equal(halls.find(({ hall }) => hall === 'mcconnell')?.status, 'ok');
+  assert.equal(halls.find(({ hall }) => hall === 'collins')?.status, 'unavailable');
+  assert.equal(good.status, 200);
+  assert.equal(bad.status, 503);
+  assert.equal((await json(bad) as HallMenu).error?.code, 'MENU_UNAVAILABLE');
+});
+
 test('handles a failed KV read as a clean 503 response', async () => {
   const env: Env = {
     MENUS: {
