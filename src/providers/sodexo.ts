@@ -2,20 +2,30 @@ import type { ApiError, MenuItem, ParsedDay, RefreshHall, SourceState } from '..
 import { uniqueSortedAllergens, containsAllergen } from '../allergens';
 import { withMealPeriod } from '../periods';
 
-const API_URL = 'https://api-prd.sodexomyway.net/v0.2/data/menu/13147001/15258';
+const LOCATION_ID = '13147001';
+const API_BASE = `https://api-prd.sodexomyway.net/v0.2/data/menu/${LOCATION_ID}`;
+// Sodexo rotates the menu id behind Hoch's location (15258 went silently empty in
+// November 2026). The location page embeds the current id, so it is read on every
+// refresh. If that fails, the last discovered id is used, then this known-good id.
+const LOCATION_PAGE_URL = 'https://hmc.sodexomyway.com/en-us/locations/hoch-shanahan-dining-commons';
+const FALLBACK_MENU_ID = '1411281';
 // This is the public browser key shipped by hmc.sodexomyway.com.
 const API_KEY = '68717828-b754-420d-9488-4c37cb7d7ef7';
 const MAX_BYTES = 2 * 1024 * 1024;
+const PAGE_MAX_BYTES = 1024 * 1024;
 const TIMEOUT_MS = 15_000;
-const STATE_VERSION = 3;
+const PAGE_TIMEOUT_MS = 5_000;
+const STATE_VERSION = 4;
 
 type JsonRecord = Record<string, unknown>;
-interface CachedDate { hash: string; day?: ParsedDay }
+interface CachedDate { hash: string; day?: ParsedDay; empty?: boolean }
 interface SodexoState extends SourceState {
   provider: 'sodexo';
   version: typeof STATE_VERSION;
   dates: Record<string, CachedDate>;
+  menuId?: string;
 }
+type MenuIdSource = 'page' | 'state' | 'fallback';
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -101,12 +111,12 @@ async function sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-async function boundedText(response: Response): Promise<string> {
+async function boundedText(response: Response, limit = MAX_BYTES): Promise<string> {
   const declared = Number(response.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > MAX_BYTES) throw new Error('Sodexo response is too large');
+  if (Number.isFinite(declared) && declared > limit) throw new Error('Sodexo response is too large');
   if (!response.body) {
     const text = await response.text();
-    if (new TextEncoder().encode(text).byteLength > MAX_BYTES) throw new Error('Sodexo response is too large');
+    if (new TextEncoder().encode(text).byteLength > limit) throw new Error('Sodexo response is too large');
     return text;
   }
   const reader = response.body.getReader();
@@ -116,7 +126,7 @@ async function boundedText(response: Response): Promise<string> {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;
-    if (total > MAX_BYTES) {
+    if (total > limit) {
       await reader.cancel();
       throw new Error('Sodexo response is too large');
     }
@@ -133,11 +143,53 @@ function previousState(value: SourceState | undefined): SodexoState | undefined 
   return value as SodexoState;
 }
 
-async function fetchDate(date: string, cached: CachedDate | undefined, fetcher: typeof fetch): Promise<CachedDate> {
+function validMenuId(value: unknown): value is string {
+  return typeof value === 'string' && /^\d{1,12}$/.test(value);
+}
+
+// The page embeds menu metadata as JSON, sometimes inside an escaped string.
+export function findMenuId(html: string): string | undefined {
+  const q = '\\\\?"';
+  const paired = new RegExp(`${q}locationId${q}\\s*:\\s*${q}${LOCATION_ID}${q}\\s*,\\s*${q}menuId${q}\\s*:\\s*${q}(\\d{1,12})${q}`).exec(html);
+  if (paired) return paired[1];
+  const ids = new Set(Array.from(html.matchAll(new RegExp(`${q}menuId${q}\\s*:\\s*${q}(\\d{1,12})${q}`, 'g')), match => match[1]));
+  // Without the location pairing, only trust an unambiguous id.
+  return ids.size === 1 ? [...ids][0] : undefined;
+}
+
+async function discoverMenuId(fetcher: typeof fetch): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PAGE_TIMEOUT_MS);
+  try {
+    const response = await fetcher(LOCATION_PAGE_URL, { headers: { Accept: 'text/html' }, signal: controller.signal });
+    if (!response.ok) throw new Error(`Location page returned HTTP ${response.status}`);
+    const menuId = findMenuId(await boundedText(response, PAGE_MAX_BYTES));
+    if (!menuId) throw new Error('Location page has no menuId');
+    return menuId;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function resolveMenuId(old: SodexoState | undefined, fetcher: typeof fetch): Promise<{ menuId: string; source: MenuIdSource }> {
+  try {
+    return { menuId: await discoverMenuId(fetcher), source: 'page' };
+  } catch (error) {
+    const known = validMenuId(old?.menuId) ? old.menuId : undefined;
+    console.warn(JSON.stringify({
+      event: 'sodexo_menu_id_discovery_failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      using: known ?? FALLBACK_MENU_ID,
+    }));
+    return known ? { menuId: known, source: 'state' } : { menuId: FALLBACK_MENU_ID, source: 'fallback' };
+  }
+}
+
+async function fetchDate(menuId: string, date: string, cached: CachedDate | undefined, fetcher: typeof fetch): Promise<CachedDate> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetcher(`${API_URL}?date=${encodeURIComponent(date)}`, {
+    const response = await fetcher(`${API_BASE}/${menuId}?date=${encodeURIComponent(date)}`, {
       headers: { 'API-Key': API_KEY, Accept: 'application/json' },
       signal: controller.signal,
     });
@@ -148,7 +200,8 @@ async function fetchDate(date: string, cached: CachedDate | undefined, fetcher: 
     if (cached?.hash === hash) return cached;
     let json: unknown;
     try { json = JSON.parse(text); } catch { throw new Error('Sodexo returned invalid JSON'); }
-    return { hash, day: parseDay(json, date) };
+    const day = parseDay(json, date);
+    return { hash, ...(day ? { day } : {}), ...(Array.isArray(json) && json.length === 0 ? { empty: true } : {}) };
   } finally {
     clearTimeout(timeout);
   }
@@ -157,22 +210,30 @@ async function fetchDate(date: string, cached: CachedDate | undefined, fetcher: 
 export const refreshSodexo: RefreshHall = async (hall, dates, previous, fetcher) => {
   if (hall !== 'hoch') throw new Error(`Sodexo does not provide ${hall}`);
   const old = previousState(previous);
+  const { menuId, source } = await resolveMenuId(old, fetcher);
+  // Cached parses belong to one menu id; a new id starts fresh.
+  const cachedDates = old?.menuId === menuId ? old.dates : {};
   const entries: Record<string, CachedDate> = {};
   const successfulDates = new Set<string>();
   const errors: Record<string, ApiError> = {};
   for (const date of dates) {
     try {
-      entries[date] = await fetchDate(date, old?.dates[date], fetcher);
+      entries[date] = await fetchDate(menuId, date, cachedDates[date], fetcher);
       successfulDates.add(date);
     } catch (error) {
-      if (old?.dates[date]) entries[date] = old.dates[date];
+      if (cachedDates[date]) entries[date] = cachedDates[date];
       console.warn(JSON.stringify({ event: 'source_date_failed', provider: 'sodexo', date, message: error instanceof Error ? error.message : 'Unknown error' }));
       errors[date] = { code: 'SOURCE_FETCH_FAILED', message: 'The menu source could not be fetched or validated.' };
     }
   }
+  // A stale menu id answers 200 [] for every date, which otherwise looks like an
+  // ordinary unpublished week. Make that failure mode loud.
+  if (dates.length > 0 && dates.every(date => successfulDates.has(date) && entries[date]?.empty)) {
+    console.warn(JSON.stringify({ event: 'sodexo_all_dates_empty', menuId, menuIdSource: source, dates: dates.length }));
+  }
   return {
     days: dates.flatMap(date => successfulDates.has(date) && entries[date]?.day ? [entries[date].day!] : []),
-    state: { provider: 'sodexo', version: STATE_VERSION, dates: entries },
+    state: { provider: 'sodexo', version: STATE_VERSION, menuId, dates: entries },
     ...(Object.keys(errors).length > 0 ? { errors } : {}),
   };
 };

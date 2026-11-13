@@ -24,8 +24,9 @@ test('Sodexo reads exact dates and preserves known item fields', async () => {
     }]);
   };
   const result = await refreshSodexo('hoch', ['2026-09-06', '2026-09-07'], undefined, fetcher);
-  assert.equal(calls.length, 2);
-  assert.match(calls[1], /date=2026-09-07$/);
+  const menuCalls = calls.filter(url => url.includes('?date='));
+  assert.equal(menuCalls.length, 2);
+  assert.match(menuCalls[1], /date=2026-09-07$/);
   assert.deepEqual(result.days[0], {
     date: '2026-09-06', status: 'ok', meals: [{ name: 'LUNCH', period: 'lunch', stations: [{
       name: 'CHEF & CORNER', items: [{ name: 'Rice & Beans', description: 'With vegetables', vegan: true, vegetarian: true, plantBased: true, mindful: true, calories: 320 }],
