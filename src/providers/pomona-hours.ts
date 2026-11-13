@@ -138,6 +138,10 @@ export function reconcilePomonaHours(days: ParsedDay[], week: PomonaWeek | undef
       } else if (match < 0 && period && !(period === 'breakfast' && brunchUsesBreakfast)) {
         match = remaining.findIndex(meal => meal.period === period);
       }
+      // One official service and one feed meal: Pomona filed that day's food
+      // under a different Eatec bucket (e.g. Friday "Lunch only" food under
+      // Breakfast), so the food belongs to the one service that is served.
+      if (match < 0 && services.length === 1 && day.meals.length === 1 && remaining.length === 1) match = 0;
       const source = match >= 0 ? remaining.splice(match, 1)[0] : undefined;
       return {
         ...(source ?? { stations: [] }),

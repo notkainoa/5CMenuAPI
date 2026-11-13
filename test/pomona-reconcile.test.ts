@@ -26,13 +26,25 @@ const summary = (day: ParsedDay) => day.meals.map(meal => ({
 }));
 const itemCount = (day: ParsedDay) => day.meals.flatMap(meal => meal.stations).flatMap(station => station.items).length;
 
-test('Frank Friday keeps the feed breakfast when hours list only lunch', async () => {
+test('Frank Friday files the lone feed meal under the one official service', async () => {
   const result = await refreshPomona('frank', ['2026-11-13'], undefined, frankFetcher(frankFeed([['20261113', 'Breakfast', 'Bagels']])));
   assert.equal(result.days.length, 1);
   assert.ok(itemCount(result.days[0]) > 0);
   assert.deepEqual(summary(result.days[0]), [
-    { name: 'Breakfast', startTime: undefined, endTime: undefined, dishes: ['Bagels'] },
-    { name: 'Lunch', startTime: '12:00', endTime: '13:00', dishes: [] },
+    { name: 'Lunch', startTime: '12:00', endTime: '13:00', dishes: ['Bagels'] },
+  ]);
+  assert.equal(result.days[0].meals[0].period, 'lunch');
+});
+
+test('Frank Friday keeps both when the feed has two meals for one service', async () => {
+  const result = await refreshPomona('frank', ['2026-11-13'], undefined, frankFetcher(frankFeed([
+    ['20261113', 'Breakfast', 'Bagels'],
+    ['20261113', 'Dinner', 'Pasta'],
+  ])));
+  assert.deepEqual(summary(result.days[0]).map(m => [m.name, m.dishes]), [
+    ['Breakfast', ['Bagels']],
+    ['Lunch', []],
+    ['Dinner', ['Pasta']],
   ]);
 });
 
