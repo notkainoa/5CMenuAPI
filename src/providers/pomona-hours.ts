@@ -105,23 +105,39 @@ function dayOfWeek(date: string): number {
   return new Date(`${date}T00:00:00Z`).getUTCDay();
 }
 
+const PERIOD_ORDER: Record<string, number> = { breakfast: 0, brunch: 1, lunch: 2, dinner: 3, late_night: 4 };
+
+function periodRank(meal: Meal): number {
+  return meal.period ? PERIOD_ORDER[meal.period] : Object.keys(PERIOD_ORDER).length;
+}
+
+// Applies the official weekly hours to Eatec's food records. The hours page is a
+// fixed schedule, while the feed is what the kitchen actually published, so the
+// feed's food always wins: a feed meal the hours page does not list for that
+// weekday stays under its Eatec label without inferred times. Official names and
+// times are applied only where a service matches a feed meal.
 export function reconcilePomonaHours(days: ParsedDay[], week: PomonaWeek | undefined): ParsedDay[] {
   if (!week) return days;
   return days.map(day => {
     const services = week[dayOfWeek(day.date)];
     if (day.status !== 'ok' || !services?.length) return day;
     const remaining = [...day.meals];
+    // Pomona files weekend brunch food under Eatec's Breakfast bucket.
     const brunchUsesBreakfast = services.some(entry => mealPeriod(entry.name) === 'brunch') &&
       !services.some(entry => mealPeriod(entry.name) === 'breakfast' && entry.name.toLowerCase() !== 'continental breakfast');
-    const meals: Meal[] = services.map(entry => {
+    const scheduled: Meal[] = services.map(entry => {
       const period = mealPeriod(entry.name);
-      let match = -1;
-      if (period === 'brunch') {
+      let match = remaining.findIndex(meal => meal.name.trim().toLowerCase() === entry.name.toLowerCase());
+      if (match < 0 && period === 'brunch') {
         match = remaining.findIndex(meal => meal.period === 'brunch');
         if (match < 0 && brunchUsesBreakfast) match = remaining.findIndex(meal => meal.period === 'breakfast');
-      } else if (!(period === 'breakfast' && brunchUsesBreakfast)) {
+      } else if (match < 0 && period && !(period === 'breakfast' && brunchUsesBreakfast)) {
         match = remaining.findIndex(meal => meal.period === period);
       }
+      // One official service and one feed meal: Pomona filed that day's food
+      // under a different Eatec bucket (e.g. Friday "Lunch only" food under
+      // Breakfast), so the food belongs to the one service that is served.
+      if (match < 0 && services.length === 1 && day.meals.length === 1 && remaining.length === 1) match = 0;
       const source = match >= 0 ? remaining.splice(match, 1)[0] : undefined;
       return {
         ...(source ?? { stations: [] }),
@@ -131,6 +147,11 @@ export function reconcilePomonaHours(days: ParsedDay[], week: PomonaWeek | undef
         endTime: entry.endTime,
       };
     });
+    // Unmatched feed meals keep their own name, period, and (absent) times.
+    const meals = [...scheduled, ...remaining]
+      .map((meal, index) => ({ meal, index }))
+      .sort((a, b) => periodRank(a.meal) - periodRank(b.meal) || a.index - b.index)
+      .map(({ meal }) => meal);
     return { ...day, meals };
   });
 }
