@@ -21,7 +21,6 @@ const HIDDEN_STATIONS = new Set([
 
 const PRESENCE_STATIONS = new Set(['salad bar']);
 const JUICE_STATIONS = new Set(['juice and smoothie bar', 'juice bar']);
-const SWEETS_STATIONS = new Set(['sweets', 'bakery', 'breakfast bakery', 'ovens', 'ovens2']);
 const COMBINED_STATIONS: Record<string, string> = { ovens2: 'ovens', 'grill special': 'grill', 'chocolate chip cookies': 'sweets' };
 const ORDERED_STATIONS = [
   "chef's table", 'main plate', 'breakfast', 'breakfast @ home', 'breakfast @home', '@home', '@ home',
@@ -91,15 +90,22 @@ function keepJuiceSpecials(canonical: string, items: CatalogItem[]): CatalogItem
   return featured.length > 0 ? featured : [];
 }
 
+const SELF_SERVE = 'Self-serve';
+
+function isPlaceholderOnly(station: Station): boolean {
+  return station.items.every(item => item.name === SELF_SERVE && item.featured === undefined);
+}
+
 function keepPresenceStation(canonical: string, items: CatalogItem[]): CatalogItem[] {
   if (!PRESENCE_STATIONS.has(canonical)) return items;
   const featured = items.filter(isFeatured);
   if (featured.length > 0) return featured;
-  return [{ name: 'Self-serve' }];
+  return [{ name: SELF_SERVE }];
 }
 
-function dropAlwaysOnWhenFeatured(canonical: string, items: CatalogItem[]): CatalogItem[] {
-  if (SWEETS_STATIONS.has(canonical) || !items.some(isFeatured)) return items;
+// Always-on items are the "Additional Favorites" tabs: the same long catalog
+// repeats every day, so it says nothing about what is served on this date.
+function dropAlwaysOn(items: CatalogItem[]): CatalogItem[] {
   return items.filter(item => !isAlwaysOn(item));
 }
 
@@ -303,7 +309,7 @@ function refineStation(station: CatalogStation, meal: string): Station | undefin
   if (shouldHideStation(canonical, meal)) return undefined;
   let items = keepJuiceSpecials(canonical, station.items);
   items = keepPresenceStation(canonical, items);
-  items = dropAlwaysOnWhenFeatured(canonical, items);
+  items = dropAlwaysOn(items);
   items = foldStationExtras(items);
   items = dropBareToppings(canonical, items);
   const published = items.map(publicItem).filter((item): item is MenuItem => item !== undefined);
@@ -340,11 +346,17 @@ export function refineBonAppetitMeals(meals: Array<Meal & { stations: CatalogSta
   const refined: Meal[] = [];
   for (const meal of meals) {
     const key = mealKey(meal.name);
-    const stations = groupStations(meal.stations, key)
+    const grouped = groupStations(meal.stations, key);
+    const stations = grouped
       .map(station => refineStation(station, key))
       .filter((station): station is Station => station !== undefined);
-    if (stations.length < 1) continue;
-    refined.push(withMealPeriod({ ...meal, stations }));
+    if (stations.length > 0 && !stations.every(isPlaceholderOnly)) {
+      refined.push(withMealPeriod({ ...meal, stations }));
+    } else if (grouped.some(station => station.items.some(isAlwaysOn))) {
+      // A listed service with only the always-on catalog has no dishes posted
+      // yet: keep its name and hours rather than hiding the meal.
+      refined.push(withMealPeriod({ ...meal, stations: [] }));
+    }
   }
   return refined;
 }

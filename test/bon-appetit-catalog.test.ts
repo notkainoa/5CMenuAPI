@@ -25,30 +25,35 @@ describe('refineBonAppetitMeals', () => {
 
   it('keeps a toppings-only salad bar as a placeholder instead of listing garnishes', () => {
     const meals = refineBonAppetitMeals([
-      { name: 'Dinner', stations: [{ name: 'Salad Bar', items: [item('arugula', { special: 0 })] }] },
+      {
+        name: 'Dinner',
+        stations: [
+          { name: 'Grill', items: [item('smash burger', { special: 1 })] },
+          { name: 'Salad Bar', items: [item('arugula', { special: 0 })] },
+        ],
+      },
     ]);
-    assert.deepEqual(meals[0].stations[0].items, [{ name: 'Self-serve' }]);
+    assert.deepEqual(meals[0].stations[1].items, [{ name: 'Self-serve' }]);
   });
 
-  it('keeps always-on breakfast dishes and oven pastries', () => {
+  it('drops the always-on catalog even from stations with no specials', () => {
+    // McConnell lists plain "bacon" under Additional Breakfast Favorites every
+    // day, including days when no bacon is served.
     const meals = refineBonAppetitMeals([
       {
         name: 'Breakfast',
         stations: [
-          { name: 'Breakfast', items: [item('scrambled eggs', { special: 0 })] },
+          { name: 'Comfort', items: [item('loaded hashbrown nest', { special: 1 })] },
+          { name: 'Breakfast', items: [item('scrambled eggs', { special: 0 }), item('bacon', { special: 0 })] },
           { name: 'Ovens', items: [item('house-made scones', { special: 0 })] },
-          { name: 'ovens2', items: [item('pepperoni pizza', { special: 0 }), item('dried oregano', { special: 0 })] },
+          { name: 'ovens2', items: [item('pepperoni pizza', { special: 1 }), item('dried oregano', { special: 0 })] },
         ],
       },
+      { name: 'Lunch', stations: [{ name: 'Grill', items: [item('bacon', { special: 0 })] }] },
     ]);
-    assert.deepEqual(meals[0].stations.map(station => [station.name, station.items.map(entry => entry.name)]), [
-      ['Breakfast', ['scrambled eggs']],
-      ['Ovens', ['house-made scones', 'pepperoni pizza']],
-    ]);
-    assert.deepEqual(meals[0].stations[0].items, [{ name: 'scrambled eggs', featured: false }]);
-    assert.deepEqual(meals[0].stations[1].items, [
-      { name: 'house-made scones', featured: false },
-      { name: 'pepperoni pizza', featured: false },
+    assert.deepEqual(meals.map(meal => [meal.name, meal.stations.map(station => [station.name, station.items.map(entry => entry.name)])]), [
+      ['Breakfast', [['Comfort', ['loaded hashbrown nest']], ['Ovens', ['pepperoni pizza']]]],
+      ['Lunch', []],
     ]);
   });
 
@@ -156,13 +161,27 @@ describe('refineBonAppetitMeals', () => {
     assert.match(names['garlic parsley breakfast potatoes'] ?? '', /smoked paprika/);
   });
 
+  it('keeps a catalog-only meal as a listed service with no dishes', () => {
+    const meals = refineBonAppetitMeals([
+      { name: 'Breakfast', stations: [{ name: 'Global', items: [item('omelet', { special: 1 })] }] },
+      {
+        name: 'Lunch',
+        stations: [
+          { name: 'Grill', items: [item('bacon', { special: 0 })] },
+          { name: 'Salad Bar', items: [item('arugula', { special: 0 })] },
+        ],
+      },
+    ]);
+    assert.deepEqual(meals.map(meal => [meal.name, meal.stations.length]), [['Breakfast', 1], ['Lunch', 0]]);
+  });
+
   it('names a merged alias after the canonical station even when the alias comes first', () => {
     const meals = refineBonAppetitMeals([
       {
         name: 'Breakfast',
         stations: [
-          { name: 'ovens2', items: [item('pepperoni pizza', { special: 0 })] },
-          { name: 'Ovens', items: [item('house-made scones', { special: 0 })] },
+          { name: 'ovens2', items: [item('pepperoni pizza', { special: 1 })] },
+          { name: 'Ovens', items: [item('house-made scones', { special: 1 })] },
         ],
       },
     ]);
@@ -190,7 +209,7 @@ describe('refineBonAppetitMeals', () => {
       {
         name: 'Dinner',
         stations: [
-          { name: 'Sweets', items: [item('lemon bars', { special: 0 })] },
+          { name: 'Sweets', items: [item('lemon bars', { special: 1 })] },
           { name: 'Grill', items: [item('smash burger', { special: 1 })] },
         ],
       },
@@ -237,7 +256,7 @@ describe('refineBonAppetitMeals', () => {
     assert.equal(late[0].stations[0].name, 'Beverages');
   });
 
-  it('publishes featured true, false, and omits the field when the school did not say', () => {
+  it('publishes featured true, drops always-on items, and omits the field when the school did not say', () => {
     const meals = refineBonAppetitMeals([
       {
         name: 'Lunch',
@@ -250,7 +269,7 @@ describe('refineBonAppetitMeals', () => {
     ]);
     const byName = Object.fromEntries(meals[0].stations.map(station => [station.name, station.items]));
     assert.deepEqual(byName.Grill, [{ name: 'smash burger', featured: true }]);
-    assert.deepEqual(byName.Sweets, [{ name: 'lemon bars', featured: false }]);
+    assert.equal(byName.Sweets, undefined);
     assert.deepEqual(byName.Global, [{ name: "chef's choice" }]);
   });
 });
