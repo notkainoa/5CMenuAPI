@@ -398,7 +398,8 @@ export function parseBonAppetitPage(html: string, requestedDate: string, hall?: 
     ? addCollinsWeeklyContinental(html, requestedDate, refinedMeals) : refinedMeals;
   const itemCount = meals.reduce((sum, meal) => sum + meal.stations.reduce((stationSum, station) => stationSum + station.items.length, 0), 0);
   if (itemCount === 0) {
-    // Listed meals that held only the always-on catalog: dishes not published yet.
+    // Listed meals kept with no dishes (only the always-on catalog or the
+    // Self-serve placeholder): that date's dishes are not posted yet.
     if (refinedMeals.length > 0) return null;
     throw new Error('Bon Appétit page has dated dayparts but no menu items');
   }

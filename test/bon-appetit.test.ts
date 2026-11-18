@@ -65,7 +65,7 @@ describe('parseBonAppetitPage', () => {
     const items = `<script>Bamco.menu_items={"201":{"label":"bacon","special":0},"202":{"label":"scrambled eggs","special":"0"}};</script>`;
     const lunch = `<section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${DATE}"><h3 class="site-panel__daypart-station-title">Grill</h3><div class="site-panel__daypart-item" data-id="201"></div><div class="site-panel__daypart-item" data-id="202"></div></div></section>`;
     assert.equal(parseBonAppetitPage(items + lunch, DATE, 'mcconnell'), null);
-    const hiddenOnly = lunch.replace('>Grill<', '>Cereal<').replace(/"special":"?0"?/g, '"special":1');
+    const hiddenOnly = lunch.replace('>Grill<', '>Cereal<');
     assert.throws(() => parseBonAppetitPage(items.replace(/"special":"?0"?/g, '"special":1') + hiddenOnly, DATE, 'mcconnell'), /no menu items/);
   });
 
