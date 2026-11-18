@@ -15,7 +15,7 @@ import { validTime } from '../dates';
 import { MEAL_PERIODS, withMealPeriod } from '../periods';
 import { refineBonAppetitMeals, type CatalogItem } from './bon-appetit-catalog';
 
-const STATE_VERSION = 8;
+const STATE_VERSION = 9;
 const PROVIDER = 'bon-appetit';
 
 const CAFES = {
@@ -397,7 +397,12 @@ export function parseBonAppetitPage(html: string, requestedDate: string, hall?: 
   const meals = hall === 'collins' && !collins?.hasSpecial
     ? addCollinsWeeklyContinental(html, requestedDate, refinedMeals) : refinedMeals;
   const itemCount = meals.reduce((sum, meal) => sum + meal.stations.reduce((stationSum, station) => stationSum + station.items.length, 0), 0);
-  if (itemCount === 0) throw new Error('Bon Appétit page has dated dayparts but no menu items');
+  if (itemCount === 0) {
+    // Listed meals kept with no dishes (only the always-on catalog or the
+    // Self-serve placeholder): that date's dishes are not posted yet.
+    if (refinedMeals.length > 0) return null;
+    throw new Error('Bon Appétit page has dated dayparts but no menu items');
+  }
   return { date: requestedDate, status: 'ok', meals };
 }
 
