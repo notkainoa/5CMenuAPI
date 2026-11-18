@@ -173,6 +173,8 @@ describe('refineBonAppetitMeals', () => {
       },
     ]);
     assert.deepEqual(meals.map(meal => [meal.name, meal.stations.length]), [['Breakfast', 1], ['Lunch', 0]]);
+    const unflagged = refineBonAppetitMeals([{ name: 'Lunch', stations: [{ name: 'Salad Bar', items: [item('croutons')] }] }]);
+    assert.deepEqual(unflagged.map(meal => [meal.name, meal.stations.length]), [['Lunch', 0]]);
   });
 
   it('names a merged alias after the canonical station even when the alias comes first', () => {

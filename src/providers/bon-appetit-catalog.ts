@@ -352,7 +352,7 @@ export function refineBonAppetitMeals(meals: Array<Meal & { stations: CatalogSta
       .filter((station): station is Station => station !== undefined);
     if (stations.length > 0 && !stations.every(isPlaceholderOnly)) {
       refined.push(withMealPeriod({ ...meal, stations }));
-    } else if (grouped.some(station => station.items.some(isAlwaysOn))) {
+    } else if (stations.length > 0 || grouped.some(station => station.items.some(isAlwaysOn))) {
       // A listed service with only the always-on catalog has no dishes posted
       // yet: keep its name and hours rather than hiding the meal.
       refined.push(withMealPeriod({ ...meal, stations: [] }));
