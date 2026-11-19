@@ -61,6 +61,17 @@ const collinsWeekly = `<p class='current-status'>Weekly Schedule</p><ul>
 </ul>`;
 
 describe('parseBonAppetitPage', () => {
+  it('reads a kitchen recipe from the page so a comma-named soup stays a dish', () => {
+    const recipes = { entrees: [{ recipe_id: '1', recipe_name: 'soup' }], sides: [] };
+    const items = { '301': { label: 'tortellini soup', special: 1, recipes }, '302': { label: 'quinoa, vegetable, and white bean soup', special: 1, recipes } };
+    const lunch = `<section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${DATE}"><h3 class="site-panel__daypart-station-title">Soup</h3><div class="site-panel__daypart-item" data-id="301"></div><div class="site-panel__daypart-item" data-id="302"></div></div></section>`;
+    const day = parseBonAppetitPage(`<script>Bamco.menu_items=${JSON.stringify(items)};</script>` + lunch, DATE, 'malott');
+    assert.deepEqual(day?.meals[0].stations[0].items, [
+      { name: 'tortellini soup', featured: true },
+      { name: 'quinoa, vegetable, and white bean soup', featured: true },
+    ]);
+  });
+
   it('treats a date that lists only the always-on catalog as not published', () => {
     const items = `<script>Bamco.menu_items={"201":{"label":"bacon","special":0},"202":{"label":"scrambled eggs","special":"0"}};</script>`;
     const lunch = `<section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${DATE}"><h3 class="site-panel__daypart-station-title">Grill</h3><div class="site-panel__daypart-item" data-id="201"></div><div class="site-panel__daypart-item" data-id="202"></div></div></section>`;

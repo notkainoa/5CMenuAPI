@@ -222,6 +222,7 @@ function parseItem(value: unknown): CatalogItem {
     if (description) item.description = description;
   }
   if ('special' in value) item.special = value.special;
+  if (isRecord(value.recipes) && Object.values(value.recipes).some(list => Array.isArray(list) && list.length > 0)) item.hasRecipe = true;
   if (typeof value.ingredients === 'string') {
     const ingredients = textContent(value.ingredients);
     if (ingredients) item.ingredients = ingredients;

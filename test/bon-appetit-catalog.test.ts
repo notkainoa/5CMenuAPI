@@ -219,22 +219,35 @@ describe('refineBonAppetitMeals', () => {
     assert.deepEqual(meals[0].stations.map(station => station.name), ['Grill', 'Sweets']);
   });
 
-  it('keeps a soup whose name is a comma list as its own dish', () => {
+  it('keeps a comma-named dish that has a kitchen recipe, and still folds topping lists', () => {
     const meals = refineBonAppetitMeals([
       {
         name: 'Lunch',
-        stations: [{
-          name: 'Soup',
-          items: [
-            item('italian sausage and cheese tortellini soup', { special: 1 }),
-            item('quinoa, vegetable, and white bean soup', { special: 1 }),
-          ],
-        }],
+        stations: [
+          {
+            name: 'Soup',
+            items: [
+              item('italian sausage and cheese tortellini soup', { special: 1, hasRecipe: true }),
+              item('quinoa, vegetable, and white bean soup', { special: 1, hasRecipe: true }),
+            ],
+          },
+          {
+            name: 'Grill',
+            items: [
+              item('beef chili dog', { special: 1, hasRecipe: true }),
+              item('lettuce, tomato, onion', { special: 1, hasRecipe: true }),
+              item('relish, mustard, ketchup', { special: 1 }),
+            ],
+          },
+        ],
       },
     ]);
-    assert.deepEqual(meals[0].stations[0].items, [
-      { name: 'italian sausage and cheese tortellini soup', featured: true },
-      { name: 'quinoa, vegetable, and white bean soup', featured: true },
+    assert.deepEqual(meals[0].stations.map(station => station.items), [
+      [{ name: 'beef chili dog', description: 'lettuce, tomato, onion; relish, mustard, ketchup', featured: true }],
+      [
+        { name: 'italian sausage and cheese tortellini soup', featured: true },
+        { name: 'quinoa, vegetable, and white bean soup', featured: true },
+      ],
     ]);
   });
 

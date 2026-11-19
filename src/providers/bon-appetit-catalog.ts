@@ -5,6 +5,7 @@ import { mealPeriod, withMealPeriod } from '../periods';
 export interface CatalogItem extends MenuItem {
   special?: unknown;
   ingredients?: string;
+  hasRecipe?: boolean;
 }
 
 interface CatalogStation extends Station {
@@ -145,10 +146,16 @@ function isComponentList(name: string): boolean {
   if (segments.length < 3) return false;
   const allShort = segments.every(segment => segment.length <= 50);
   if (isComposedPlate(name, segments.length)) return false;
-  // "quinoa, vegetable, and white bean soup" names one soup, not a topping list.
-  if (/\b(soup|stew|chowder|bisque|gumbo)$/i.test(name.trim())) return false;
   if (segments.length >= 4 && allShort) return true;
   return segments.length === 3 && allShort;
+}
+
+// A kitchen recipe marks a dish the hall cooks, even when its name reads as a
+// comma list ("quinoa, vegetable, and white bean soup"). Topping lists typed in
+// by hand have none; a recipe made only of bare toppings is still a list.
+function isToppingList(item: CatalogItem): boolean {
+  if (!isComponentList(item.name)) return false;
+  return !item.hasRecipe || item.name.split(',').every(part => isBareTopping(part, ''));
 }
 
 function extraNoteText(item: CatalogItem): string {
@@ -214,7 +221,7 @@ function foldStationExtras(items: CatalogItem[]): CatalogItem[] {
   const pendingPrefix: CatalogItem[] = [];
   let pendingSuffix: CatalogItem[] = [];
   for (const item of items) {
-    if (isInstruction(item.name) || isComponentList(item.name)) {
+    if (isInstruction(item.name) || isToppingList(item)) {
       if (dishes.length < 1) pendingPrefix.push(item);
       else pendingSuffix.push(item);
       continue;
