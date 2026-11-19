@@ -61,7 +61,7 @@ const collinsWeekly = `<p class='current-status'>Weekly Schedule</p><ul>
 </ul>`;
 
 describe('parseBonAppetitPage', () => {
-  it('treats a date that lists only the always-on catalog as not published', () => {
+  it('treats a date that lists nothing under Specials as not published', () => {
     const items = `<script>Bamco.menu_items={"201":{"label":"bacon","special":0},"202":{"label":"scrambled eggs","special":"0"}};</script>`;
     const lunch = `<section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${DATE}"><h3 class="site-panel__daypart-station-title">Grill</h3><div class="site-panel__daypart-item" data-id="201"></div><div class="site-panel__daypart-item" data-id="202"></div></div></section>`;
     assert.equal(parseBonAppetitPage(items + lunch, DATE, 'mcconnell'), null);
@@ -97,6 +97,8 @@ describe('parseBonAppetitPage', () => {
       ]],
       ['Dinner', []],
     ]);
+    const standingOnly = `<script>Bamco.menu_items=${JSON.stringify(items)};</script>` + meal('Dinner', station('Grill', '405') + station('Condiments', '406'));
+    assert.equal(parseBonAppetitPage(standingOnly, DATE, 'malott'), null);
   });
 
   it('publishes Collins weekday continental breakfast hours without copying breakfast dishes', () => {

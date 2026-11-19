@@ -224,7 +224,8 @@ function featuredFlag(special: unknown): boolean | undefined {
 function onSpecialsTab(value: JsonRecord): boolean {
   const tier = Number(value.tier);
   if (Number.isInteger(tier) && tier >= 1) return tier === 1;
-  // A page without tiers: the special flag marked the same split.
+  // A page without tiers: the special flag is the next best signal. It leaves
+  // out the standing lists, and also the few Specials the school did not flag.
   return featuredFlag(value.special) !== false;
 }
 
