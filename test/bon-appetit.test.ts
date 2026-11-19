@@ -65,8 +65,38 @@ describe('parseBonAppetitPage', () => {
     const items = `<script>Bamco.menu_items={"201":{"label":"bacon","special":0},"202":{"label":"scrambled eggs","special":"0"}};</script>`;
     const lunch = `<section class="site-panel--daypart" data-jump-nav-title="Lunch"><div class="site-panel__daypart-container" data-end-date="${DATE}"><h3 class="site-panel__daypart-station-title">Grill</h3><div class="site-panel__daypart-item" data-id="201"></div><div class="site-panel__daypart-item" data-id="202"></div></div></section>`;
     assert.equal(parseBonAppetitPage(items + lunch, DATE, 'mcconnell'), null);
-    const hiddenOnly = lunch.replace('>Grill<', '>Cereal<');
-    assert.throws(() => parseBonAppetitPage(items.replace(/"special":"?0"?/g, '"special":1') + hiddenOnly, DATE, 'mcconnell'), /no menu items/);
+    const noItems = lunch.replace(/<div class="site-panel__daypart-item"[^>]*><\/div>/g, '');
+    assert.throws(() => parseBonAppetitPage(items + noItems, DATE, 'mcconnell'), /no menu items/);
+  });
+
+  it('publishes the Specials tab exactly as the school lists it and leaves out the standing lists', () => {
+    const items = {
+      '401': { label: 'tortellini soup', tier: 1, special: 1 },
+      '402': { label: 'quinoa, vegetable, and white bean soup', tier: 1, special: 1 },
+      '403': { label: 'toppings', description: 'kimchi, carrots, cilantro', tier: 1, special: 1 },
+      '404': { label: 'impossible burger', tier: '1', special: 0 },
+      '405': { label: 'bacon', tier: 2, special: 0 },
+      '406': { label: 'ketchup', tier: 3, special: 0 },
+    };
+    const item = (id: string) => `<div class="site-panel__daypart-item" data-id="${id}"></div>`;
+    const station = (name: string, ...ids: string[]) => `<h3 class="site-panel__daypart-station-title">${name}</h3>${ids.map(item).join('')}`;
+    const meal = (name: string, body: string) => `<section class="site-panel--daypart" data-jump-nav-title="${name}"><div class="site-panel__daypart-container" data-end-date="${DATE}">${body}</div></section>`;
+    const html = `<script>Bamco.menu_items=${JSON.stringify(items)};</script>` +
+      meal('Lunch', station('Soup', '401', '402') + station('Global', '403', '404') + station('Grill', '405') + station('Condiments', '406')) +
+      meal('Dinner', station('Grill', '405'));
+    assert.deepEqual(parseBonAppetitPage(html, DATE, 'malott')?.meals.map(entry => [entry.name, entry.stations]), [
+      ['Lunch', [
+        { name: 'Soup', items: [
+          { name: 'tortellini soup', featured: true },
+          { name: 'quinoa, vegetable, and white bean soup', featured: true },
+        ] },
+        { name: 'Global', items: [
+          { name: 'toppings', description: 'kimchi, carrots, cilantro', featured: true },
+          { name: 'impossible burger', featured: false },
+        ] },
+      ]],
+      ['Dinner', []],
+    ]);
   });
 
   it('publishes Collins weekday continental breakfast hours without copying breakfast dishes', () => {

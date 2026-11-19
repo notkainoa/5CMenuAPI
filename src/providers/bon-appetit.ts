@@ -13,9 +13,8 @@ import type {
 import { boundedText } from './response';
 import { validTime } from '../dates';
 import { MEAL_PERIODS, withMealPeriod } from '../periods';
-import { refineBonAppetitMeals, type CatalogItem } from './bon-appetit-catalog';
 
-const STATE_VERSION = 9;
+const STATE_VERSION = 10;
 const PROVIDER = 'bon-appetit';
 
 const CAFES = {
@@ -194,7 +193,7 @@ function calorieValue(value: unknown): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function applyBonAppetitIcons(item: CatalogItem, labels: Set<string>): void {
+function applyBonAppetitIcons(item: MenuItem, labels: Set<string>): void {
   if (labels.has('vegan')) item.vegan = true;
   if (labels.has('vegetarian')) item.vegetarian = true;
   if (labels.has('halal')) item.halal = true;
@@ -212,19 +211,33 @@ function applyBonAppetitIcons(item: CatalogItem, labels: Set<string>): void {
   }
 }
 
-function parseItem(value: unknown): CatalogItem {
+function featuredFlag(special: unknown): boolean | undefined {
+  if (special === true || special === 1 || special === '1') return true;
+  if (special === false || special === 0 || special === '0') return false;
+  return undefined;
+}
+
+// The page files every item under one of three tabs. Tier 1 is that day's
+// "Specials". Tier 2 ("Additional Favorites") and tier 3 ("Condiments and
+// Extras") are standing lists that repeat unchanged every day, whatever is
+// served, so only the Specials tab is published.
+function onSpecialsTab(value: JsonRecord): boolean {
+  const tier = Number(value.tier);
+  if (Number.isInteger(tier) && tier >= 1) return tier === 1;
+  // A page without tiers: the special flag marked the same split.
+  return featuredFlag(value.special) !== false;
+}
+
+/** One listed item exactly as the school wrote it, or undefined when it is not on the Specials tab. */
+function parseItem(value: unknown): MenuItem | undefined {
   if (!isRecord(value) || typeof value.label !== 'string') throw new Error('Bon Appétit menu item lacks a label');
   const name = textContent(value.label);
   if (!name) throw new Error('Bon Appétit menu item has an empty label');
-  const item: CatalogItem = { name };
+  if (!onSpecialsTab(value)) return undefined;
+  const item: MenuItem = { name };
   if (typeof value.description === 'string') {
     const description = textContent(value.description);
     if (description) item.description = description;
-  }
-  if ('special' in value) item.special = value.special;
-  if (typeof value.ingredients === 'string') {
-    const ingredients = textContent(value.ingredients);
-    if (ingredients) item.ingredients = ingredients;
   }
 
   const iconLabels = new Set<string>();
@@ -237,6 +250,8 @@ function parseItem(value: unknown): CatalogItem {
     }
   }
   applyBonAppetitIcons(item, iconLabels);
+  const featured = featuredFlag(value.special);
+  if (featured !== undefined) item.featured = featured;
 
   const detailedCalories = isRecord(value.nutrition_details) && isRecord(value.nutrition_details.calories)
     ? calorieValue(value.nutrition_details.calories.value) : undefined;
@@ -246,7 +261,7 @@ function parseItem(value: unknown): CatalogItem {
   return item;
 }
 
-function mealFromSection(section: { attributes: string; body: string }, items: JsonRecord): Meal {
+function mealFromSection(section: { attributes: string; body: string }, items: JsonRecord): { meal: Meal; listed: number } {
   const nameFromAttribute = attribute(section.attributes, 'data-jump-nav-title');
   const heading = /<h2\b[^>]*class=(?:"[^"]*site-panel__daypart-panel-title[^"]*"|'[^']*site-panel__daypart-panel-title[^']*')[^>]*>([\s\S]*?)<\/h2>/i.exec(section.body)?.[1];
   const name = textContent(nameFromAttribute ?? heading ?? '');
@@ -270,6 +285,7 @@ function mealFromSection(section: { attributes: string; body: string }, items: J
   if (endTime && validTime(endTime)) meal.endTime = endTime;
 
   const tags = /<(h3|div)\b([^>]*)>/gi;
+  let listed = 0;
   let currentStation: Station | undefined;
   let tag: RegExpExecArray | null;
   while ((tag = tags.exec(section.body)) !== null) {
@@ -286,10 +302,13 @@ function mealFromSection(section: { attributes: string; body: string }, items: J
       if (!currentStation) throw new Error('Bon Appétit menu item appears before a station');
       const id = attribute(attributes, 'data-id');
       if (!id || !(id in items)) throw new Error(`Bon Appétit page references unknown menu item ${id ?? '(missing id)'}`);
-      currentStation.items.push(parseItem(items[id]));
+      listed += 1;
+      const item = parseItem(items[id]);
+      if (item) currentStation.items.push(item);
     }
   }
-  return meal;
+  meal.stations = meal.stations.filter(station => station.items.length > 0);
+  return { meal, listed };
 }
 
 function sectionDate(section: { body: string }): string | undefined {
@@ -391,16 +410,16 @@ export function parseBonAppetitPage(html: string, requestedDate: string, hall?: 
   const itemData = jsonAssignment(html, 'menu_items');
   if (!isRecord(itemData)) throw new Error('Bamco.menu_items is not an object');
   const mealSections = matchingSections.filter(section => !isClosedSection(section));
-  const parsedMeals = mealSections.map(section => mealFromSection(section, itemData));
+  const sections = mealSections.map(section => mealFromSection(section, itemData));
+  const parsedMeals = sections.map(section => section.meal);
   const collins = hall === 'collins' ? collinsSpecialHours(html, requestedDate, parsedMeals) : undefined;
-  const refinedMeals = refineBonAppetitMeals(collins?.meals ?? parsedMeals);
+  const listedMeals = collins?.meals ?? parsedMeals;
   const meals = hall === 'collins' && !collins?.hasSpecial
-    ? addCollinsWeeklyContinental(html, requestedDate, refinedMeals) : refinedMeals;
+    ? addCollinsWeeklyContinental(html, requestedDate, listedMeals) : listedMeals;
   const itemCount = meals.reduce((sum, meal) => sum + meal.stations.reduce((stationSum, station) => stationSum + station.items.length, 0), 0);
   if (itemCount === 0) {
-    // Listed meals kept with no dishes (only the always-on catalog or the
-    // Self-serve placeholder): that date's dishes are not posted yet.
-    if (refinedMeals.length > 0) return null;
+    // The page lists items, but none under Specials: that date's dishes are not posted yet.
+    if (sections.some(section => section.listed > 0)) return null;
     throw new Error('Bon Appétit page has dated dayparts but no menu items');
   }
   return { date: requestedDate, status: 'ok', meals };
