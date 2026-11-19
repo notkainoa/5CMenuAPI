@@ -15,7 +15,7 @@ import { validTime } from '../dates';
 import { MEAL_PERIODS, withMealPeriod } from '../periods';
 import { refineBonAppetitMeals, type CatalogItem } from './bon-appetit-catalog';
 
-const STATE_VERSION = 9;
+const STATE_VERSION = 10;
 const PROVIDER = 'bon-appetit';
 
 const CAFES = {

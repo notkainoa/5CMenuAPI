@@ -219,6 +219,25 @@ describe('refineBonAppetitMeals', () => {
     assert.deepEqual(meals[0].stations.map(station => station.name), ['Grill', 'Sweets']);
   });
 
+  it('keeps a soup whose name is a comma list as its own dish', () => {
+    const meals = refineBonAppetitMeals([
+      {
+        name: 'Lunch',
+        stations: [{
+          name: 'Soup',
+          items: [
+            item('italian sausage and cheese tortellini soup', { special: 1 }),
+            item('quinoa, vegetable, and white bean soup', { special: 1 }),
+          ],
+        }],
+      },
+    ]);
+    assert.deepEqual(meals[0].stations[0].items, [
+      { name: 'italian sausage and cheese tortellini soup', featured: true },
+      { name: 'quinoa, vegetable, and white bean soup', featured: true },
+    ]);
+  });
+
   it('keeps a four-part cooked plate as a dish instead of folding it away', () => {
     const meals = refineBonAppetitMeals([
       {

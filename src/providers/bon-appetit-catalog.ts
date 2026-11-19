@@ -145,6 +145,8 @@ function isComponentList(name: string): boolean {
   if (segments.length < 3) return false;
   const allShort = segments.every(segment => segment.length <= 50);
   if (isComposedPlate(name, segments.length)) return false;
+  // "quinoa, vegetable, and white bean soup" names one soup, not a topping list.
+  if (/\b(soup|stew|chowder|bisque|gumbo)$/i.test(name.trim())) return false;
   if (segments.length >= 4 && allShort) return true;
   return segments.length === 3 && allShort;
 }
